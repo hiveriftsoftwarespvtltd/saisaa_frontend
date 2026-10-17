@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-display: "Cinzel", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-script: "Alex Brush", cursive;
+
+  --color-emerald-deep: #09231A;
+  --color-emerald-rich: #0F382A;
+  --color-emerald-royal: #18523D;
+  --color-emerald-light: #246B52;
+  --color-emerald-subtle: #EDF5F1;
+
+  --color-gold-light: #F7E7BE;
+  --color-gold-primary: #D4AF37;
+  --color-gold-deep: #A37F15;
+  --color-gold-metallic: #C5A059;
+  --color-gold-muted: #8F7236;
+
+  --color-cream-bg: #FAF7F2;
+  --color-cream-card: #F5EFE6;
+  --color-champagne: #EDE4D3;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-cream-bg);
+    color: #1a241f;
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, .font-serif-title {
+    font-family: var(--font-serif);
+  }
+
+  .font-brand {
+    font-family: var(--font-display);
+    letter-spacing: 0.15em;
+  }
+
+  .font-script {
+    font-family: var(--font-script);
+  }
+}
+
+/* Custom Luxury Gradients & Effects */
+.bg-emerald-velvet {
+  background: radial-gradient(circle at 50% 30%, #164e3b 0%, #0c2d22 55%, #071f17 100%);
+}
+
+.bg-gold-shimmer {
+  background: linear-gradient(135deg, #F9ECC8 0%, #D4AF37 50%, #B88E1C 100%);
+}
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, #F8ECC8 0%, #E0B84D 40%, #BF9122 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.border-gold-glow {
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+.gold-border-gradient {
+  border-image: linear-gradient(to right, #F7E7BE, #D4AF37, #A37F15) 1;
+}
+
+/* Glassmorphism */
+.glass-emerald {
+  background: rgba(15, 56, 42, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF7F2;
+}
+::-webkit-scrollbar-thumb {
+  background: #18523D;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D4AF37;
+}
