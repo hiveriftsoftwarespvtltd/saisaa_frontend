@@ -6,7 +6,10 @@ export const API_ENDPOINTS = {
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
     ME: '/auth/me',
+    FORGOT_PASSWORD: '/auth/forgot-password',
+    RESET_PASSWORD: '/auth/reset-password',
   },
+
 
   // Products Management & Showcase
   PRODUCTS: {
@@ -31,6 +34,9 @@ export const API_ENDPOINTS = {
     BY_ID: (id) => `/orders/${id}`,
     MY_ORDERS: (email) => `/orders/my-orders?email=${encodeURIComponent(email)}`,
     UPDATE_STATUS: (orderId) => `/orders/${orderId}/status`,
+    RAZORPAY_KEY: '/orders/razorpay/key',
+    RAZORPAY_CREATE_ORDER: '/orders/razorpay/create-order',
+    RAZORPAY_VERIFY: '/orders/razorpay/verify',
   },
 
   // Customer Cart Engine

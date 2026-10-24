@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Star,
   Heart,
@@ -32,13 +32,24 @@ import { apiClient, API_ENDPOINTS } from '../config';
 export const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const fallbackProduct = PRODUCTS.find((p) => p.id === id) || PRODUCTS[0];
-  const [product, setProduct] = useState(fallbackProduct);
+  const location = useLocation();
+
+  // Instantaneous hydration: Use state passed from ProductCard click, or matching static item, or null
+  const initialProduct =
+    location.state?.product ||
+    PRODUCTS.find((p) => p.id === id || p.customId === id || p.slug === id) ||
+    null;
+
+  const [product, setProduct] = useState(initialProduct);
+  const [isLoadingProduct, setIsLoadingProduct] = useState(!initialProduct);
 
   // Fetch live product details from NestJS Backend
   useEffect(() => {
     const fetchLiveProduct = async () => {
       try {
+        if (!initialProduct) {
+          setIsLoadingProduct(true);
+        }
         const res = await apiClient.get(API_ENDPOINTS.PRODUCTS.BY_ID(id));
         if (res?.data) {
           const liveData = res.data;
@@ -62,6 +73,11 @@ export const ProductDetails = () => {
         }
       } catch (err) {
         console.warn('Using static fallback for product details:', err.message);
+        if (!product && !initialProduct) {
+          setProduct(PRODUCTS[0]);
+        }
+      } finally {
+        setIsLoadingProduct(false);
       }
     };
     if (id) {
@@ -69,10 +85,32 @@ export const ProductDetails = () => {
     }
   }, [id]);
 
+  const isUnstitched = Boolean(
+    (typeof product?.category === 'string' && product.category.toLowerCase().includes('unstitched')) ||
+    (typeof product?.subCategory === 'string' && product.subCategory.toLowerCase().includes('unstitched')) ||
+    (typeof product?.name === 'string' && product.name.toLowerCase().includes('unstitched')) ||
+    (typeof product?.slug === 'string' && product.slug.toLowerCase().includes('unstitched')) ||
+    (typeof id === 'string' && id.toLowerCase().includes('unstitched')) ||
+    (Array.isArray(product?.tags) && product.tags.some((t) => typeof t === 'string' && t.toLowerCase().includes('unstitched')))
+  );
+
   const [activeImage, setActiveImage] = useState(0);
-  const [selectedSize, setSelectedSize] = useState(() => (fallbackProduct.sizes && fallbackProduct.sizes[0]) || 'Standard');
+  const [selectedSize, setSelectedSize] = useState(() =>
+    isUnstitched ? 'Unstitched (Free Size)' : ((product?.sizes && product.sizes[0]) || 'Standard')
+  );
   const [quantity, setQuantity] = useState(1);
   const [pincode, setPincode] = useState('');
+
+  // Synchronize size when product loads or switches to/from unstitched
+  useEffect(() => {
+    if (isUnstitched) {
+      setSelectedSize('Unstitched (Free Size)');
+    } else if (Array.isArray(product?.sizes) && product.sizes.length > 0) {
+      if (!product.sizes.includes(selectedSize) || selectedSize === 'Unstitched (Free Size)') {
+        setSelectedSize(product.sizes[0]);
+      }
+    }
+  }, [product?.id, product?.category, product?.subCategory, product?.name, product?.slug, isUnstitched]);
   const [pincodeStatus, setPincodeStatus] = useState(null);
   const [activeTab, setActiveTab] = useState('details');
 
@@ -80,13 +118,13 @@ export const ProductDetails = () => {
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { user } = useAuth();
   const { addToast } = useToast();
-  const isWishlisted = isInWishlist(product.id);
+  const isWishlisted = isInWishlist(product?.id);
 
   // Reviews & Verified Purchase State
   const [reviewsData, setReviewsData] = useState({
     reviews: [],
     totalCount: 0,
-    averageRating: fallbackProduct.rating || 4.8,
+    averageRating: product?.rating || 4.8,
     distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
   });
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
@@ -114,7 +152,7 @@ export const ProductDetails = () => {
   // Fetch live reviews and verify purchase eligibility
   useEffect(() => {
     const fetchReviewsAndEligibility = async () => {
-      const targetId = product.id || product._id || id;
+      const targetId = product?.id || product?._id || id;
       if (!targetId) return;
 
       setIsLoadingReviews(true);
@@ -154,7 +192,7 @@ export const ProductDetails = () => {
     };
 
     fetchReviewsAndEligibility();
-  }, [id, product.id, product._id, user?.email]);
+  }, [id, product?.id, product?._id, user?.email]);
 
   const handleReviewImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -201,11 +239,11 @@ export const ProductDetails = () => {
 
     setIsSubmittingReview(true);
     try {
-      const targetId = product.id || product._id || id;
+      const targetId = product?.id || product?._id || id;
       await apiClient.post(API_ENDPOINTS.REVIEWS.BASE, {
         productId: targetId,
-        productName: product.name,
-        productImage: product.cardImage || (product.images && product.images[0]) || '',
+        productName: product?.name,
+        productImage: product?.cardImage || (product?.images && product.images[0]) || '',
         customer: user.name || 'Verified Patron',
         customerEmail: user.email,
         rating: Number(newReview.rating),
@@ -237,17 +275,17 @@ export const ProductDetails = () => {
   };
 
   // Dynamic price calculation according to selected size variant
-  const activeVariant = Array.isArray(product.sizeVariants)
+  const activeVariant = Array.isArray(product?.sizeVariants)
     ? product.sizeVariants.find((v) => v.size === selectedSize)
     : null;
 
   const currentPrice = activeVariant?.price
     ? Number(activeVariant.price)
-    : Number(product.price);
+    : Number(product?.price || 0);
 
   const currentOriginalPrice = activeVariant?.originalPrice
     ? Number(activeVariant.originalPrice)
-    : (product.originalPrice ? Number(product.originalPrice) : null);
+    : (product?.originalPrice ? Number(product.originalPrice) : null);
 
   const discountPercent =
     currentOriginalPrice && currentOriginalPrice > currentPrice
@@ -261,7 +299,7 @@ export const ProductDetails = () => {
         price: currentPrice,
         originalPrice: currentOriginalPrice,
       },
-      selectedSize,
+      isUnstitched ? 'Unstitched (Free Size)' : selectedSize,
       quantity
     );
   };
@@ -273,7 +311,7 @@ export const ProductDetails = () => {
         price: currentPrice,
         originalPrice: currentOriginalPrice,
       },
-      selectedSize,
+      isUnstitched ? 'Unstitched (Free Size)' : selectedSize,
       quantity
     );
     navigate('/checkout');
@@ -294,6 +332,51 @@ export const ProductDetails = () => {
     }
   };
 
+  // Loading skeleton while fetching product if no initial product
+  if (!product && isLoadingProduct) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12 animate-pulse">
+        <div className="h-4 w-48 bg-stone-200/80 rounded-md" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <div className="lg:col-span-7 flex flex-col-reverse md:flex-row gap-4">
+            <div className="flex md:flex-col gap-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="w-16 h-20 sm:w-20 sm:h-26 rounded-xl bg-stone-200/80" />
+              ))}
+            </div>
+            <div className="flex-1 aspect-[3/4] rounded-2xl bg-stone-200/80" />
+          </div>
+          <div className="lg:col-span-5 space-y-6">
+            <div className="space-y-3">
+              <div className="h-4 w-28 bg-stone-200/80 rounded-md" />
+              <div className="h-8 w-3/4 bg-stone-200/80 rounded-lg" />
+              <div className="h-6 w-36 bg-stone-200/80 rounded-md" />
+            </div>
+            <div className="h-24 bg-stone-100 rounded-xl border border-stone-200/60" />
+            <div className="h-12 bg-stone-200/80 rounded-xl" />
+            <div className="h-12 bg-stone-200/80 rounded-xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Not found fallback
+  if (!product) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-24 text-center space-y-4">
+        <h2 className="font-serif text-2xl font-bold text-stone-900">Creation Not Found</h2>
+        <p className="text-sm text-stone-500">The artisanal creation you are seeking may have been archived.</p>
+        <Link
+          to="/shop"
+          className="inline-block px-6 py-2.5 bg-[#09231A] text-[#F7E7BE] rounded-xl text-xs uppercase font-bold tracking-widest"
+        >
+          Explore All Creations
+        </Link>
+      </div>
+    );
+  }
+
   // Related products from same category or complementary
   const relatedProducts = PRODUCTS.filter(
     (p) => p.id !== product.id && (p.category === product.category || p.isBestSeller)
@@ -307,8 +390,19 @@ export const ProductDetails = () => {
           Home
         </Link>
         <ChevronRight className="w-3.5 h-3.5" />
-        <Link to={`/${product.category}`} className="hover:text-stone-900 capitalize transition-colors">
-          {product.category}
+        <Link
+          to={`/${String(product.category || '').toLowerCase().replace(/\s+/g, '-')}`}
+          className="hover:text-stone-900 capitalize transition-colors font-medium"
+        >
+          {String(product.category || '').toLowerCase() === 'stitched-suits' ||
+          String(product.category || '').toLowerCase() === 'stitched suits'
+            ? 'Stitched Suits'
+            : String(product.category || '').toLowerCase() === 'unstitched-suits' ||
+              String(product.category || '').toLowerCase() === 'unstitched suits'
+            ? 'Unstitched Suits'
+            : String(product.category || '').toLowerCase() === 'sarees'
+            ? 'Sarees'
+            : product.category}
         </Link>
         <ChevronRight className="w-3.5 h-3.5" />
         <span className="text-stone-900 font-semibold truncate max-w-xs">{product.name}</span>
@@ -450,48 +544,69 @@ export const ProductDetails = () => {
           </p>
 
           {/* Size Selection */}
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold uppercase tracking-wider text-stone-900">
-                Select Size: <span className="text-[#18523D]">{selectedSize}</span>
-              </label>
-              <button
-                type="button"
-                onClick={() => alert('Standard Saisaa Couture Sizing: XS (Bust 34"), S (Bust 36"), M (Bust 38"), L (Bust 40"), XL (Bust 42"), XXL (Bust 44"). Custom tailored measurements also accepted.')}
-                className="text-xs text-[#18523D] underline font-semibold"
-              >
-                Size Guide
-              </button>
+          {isUnstitched ? (
+            <div className="p-3.5 bg-[#FAF7F2] border border-[#D4AF37]/35 rounded-xl flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#18523D]/10 flex items-center justify-center text-[#18523D] shrink-0">
+                  <Scissors className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-stone-900">
+                    Size: <span className="text-[#18523D]">Unstitched Fabric (Free Size)</span>
+                  </div>
+                  <p className="text-[11px] text-stone-500 mt-0.5">
+                    Customizable Fabric Set &bull; Free size to tailor to your bespoke fit
+                  </p>
+                </div>
+              </div>
+              <span className="text-[11px] font-semibold bg-[#18523D]/10 text-[#18523D] px-2.5 py-1 rounded-full whitespace-nowrap">
+                Free Size
+              </span>
             </div>
-            <div className="flex flex-wrap gap-2.5">
-              {product.sizes.map((sz) => {
-                const variant = product.sizeVariants?.find((v) => v.size === sz);
-                return (
-                  <button
-                    key={sz}
-                    type="button"
-                    onClick={() => setSelectedSize(sz)}
-                    className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all flex flex-col items-center gap-0.5 cursor-pointer ${
-                      selectedSize === sz
-                        ? 'bg-[#09231A] text-[#F7E7BE] border-[#09231A] shadow-md scale-102'
-                        : 'border-stone-300 text-stone-700 hover:border-stone-400 bg-white'
-                    }`}
-                  >
-                    <span>{sz}</span>
-                    {variant?.price ? (
-                      <span
-                        className={`text-[10px] font-mono ${
-                          selectedSize === sz ? 'text-[#D4AF37]' : 'text-stone-500'
-                        }`}
-                      >
-                        ₹{Number(variant.price).toLocaleString('en-IN')}
-                      </span>
-                    ) : null}
-                  </button>
-                );
-              })}
+          ) : (
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold uppercase tracking-wider text-stone-900">
+                  Select Size: <span className="text-[#18523D]">{selectedSize}</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => alert('Standard Saisaa Couture Sizing: XS (Bust 34"), S (Bust 36"), M (Bust 38"), L (Bust 40"), XL (Bust 42"), XXL (Bust 44"). Custom tailored measurements also accepted.')}
+                  className="text-xs text-[#18523D] underline font-semibold cursor-pointer hover:text-[#09231A]"
+                >
+                  Size Guide
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2.5">
+                {product.sizes.map((sz) => {
+                  const variant = product.sizeVariants?.find((v) => v.size === sz);
+                  return (
+                    <button
+                      key={sz}
+                      type="button"
+                      onClick={() => setSelectedSize(sz)}
+                      className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all flex flex-col items-center gap-0.5 cursor-pointer ${
+                        selectedSize === sz
+                          ? 'bg-[#09231A] text-[#F7E7BE] border-[#09231A] shadow-md scale-102'
+                          : 'border-stone-300 text-stone-700 hover:border-stone-400 bg-white'
+                      }`}
+                    >
+                      <span>{sz}</span>
+                      {variant?.price ? (
+                        <span
+                          className={`text-[10px] font-mono ${
+                            selectedSize === sz ? 'text-[#D4AF37]' : 'text-stone-500'
+                          }`}
+                        >
+                          ₹{Number(variant.price).toLocaleString('en-IN')}
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Quantity Selector */}
           <div className="flex items-center justify-between py-3 border-y border-stone-200/80">

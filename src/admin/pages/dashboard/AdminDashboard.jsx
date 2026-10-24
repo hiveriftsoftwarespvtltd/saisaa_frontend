@@ -56,7 +56,7 @@ export const AdminDashboard = () => {
       const em = (c.email || '').toLowerCase();
       if (em) emailSet.add(em);
     });
-    return Math.max(emailSet.size, customers.length, 1);
+    return emailSet.size || customers.length || 0;
   }, [orders, customers]);
 
   // Dynamic KPIs from state

@@ -107,18 +107,6 @@ export const Register = () => {
     }
   };
 
-  const handleDemoFill = () => {
-    setFormData({
-      fullName: 'Aanya Sharma',
-      email: 'aanya.sharma@example.com',
-      password: 'RoyalPassword123!',
-      confirmPassword: 'RoyalPassword123!',
-      agreeTerms: true,
-      newsletter: true,
-    });
-    addToast('Filled demo registration details', 'cart');
-  };
-
   return (
     <div className="min-h-[85vh] bg-[#FAF7F2] py-12 px-4 sm:px-6 lg:px-8 flex flex-col justify-center relative overflow-hidden">
       {/* Decorative Royal Corner Glows */}
@@ -399,18 +387,6 @@ export const Register = () => {
                   )}
                 </button>
               </form>
-
-              {/* Quick Fill Demo Helper */}
-              <div className="mt-4 pt-3 border-t border-stone-100">
-                <button
-                  type="button"
-                  onClick={handleDemoFill}
-                  className="w-full py-2 px-3 bg-stone-50 hover:bg-stone-100 text-stone-600 border border-stone-200 rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
-                >
-                  <Crown className="w-3.5 h-3.5 text-[#D4AF37]" />
-                  <span>Auto-fill Sample Patron Details</span>
-                </button>
-              </div>
 
               {/* Already have an account link */}
               <div className="mt-5 text-center text-xs text-stone-600">

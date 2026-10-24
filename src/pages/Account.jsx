@@ -36,7 +36,7 @@ export const Account = () => {
   const { addToCart } = useCart();
   const { wishlist, isInWishlist, toggleWishlist } = useWishlist();
   const { addToast } = useToast();
-  const { user, isAuthenticated, logout, loginDemo, updateProfile } = useAuth();
+  const { user, isAuthenticated, logout, updateProfile } = useAuth();
 
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -50,24 +50,22 @@ export const Account = () => {
     return parts[0].slice(0, 2).toUpperCase();
   };
 
-  const isDemoPatron = (user?.email || '').toLowerCase() === 'ravinder@example.com';
-
   // User Profile state (hydrated from AuthContext)
   const [userProfile, setUserProfile] = useState({
-    name: user?.name || user?.fullName || (isDemoPatron ? 'Ravinder Singh' : 'Valued Patron'),
-    email: user?.email || (isDemoPatron ? 'ravinder@example.com' : ''),
-    phone: user?.phone || (isDemoPatron ? '+91 88149 30229' : ''),
+    name: user?.name || user?.fullName || 'Valued Patron',
+    email: user?.email || '',
+    phone: user?.phone || '',
   });
 
   useEffect(() => {
     if (user) {
       setUserProfile({
-        name: user.name || user.fullName || (isDemoPatron ? 'Ravinder Singh' : 'Valued Patron'),
+        name: user.name || user.fullName || 'Valued Patron',
         email: user.email || '',
         phone: user.phone || '',
       });
     }
-  }, [user, isDemoPatron]);
+  }, [user]);
 
   // Orders State (defaults to empty array for real users)
   const [orders, setOrders] = useState([]);
@@ -122,52 +120,6 @@ export const Account = () => {
             };
           });
           setOrders(mapped);
-        } else if (isDemoPatron) {
-          // Demo fallback orders strictly for the demo patron account
-          setOrders([
-            {
-              id: 'SAI12568',
-              date: '12 Sep 2026',
-              productName: 'Embroidered Unstitched Suit Set',
-              color: 'Yellow',
-              qty: 1,
-              price: 2499,
-              status: 'Delivered',
-              statusText: 'Delivered on 15 Sep 2026',
-              badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-              dotColor: 'bg-emerald-500',
-              image: '/images/05_shop_product_card_1.jpg',
-              canBuyAgain: true,
-            },
-            {
-              id: 'SAI12512',
-              date: '5 Sep 2026',
-              productName: 'Printed Unstitched Suit Set',
-              color: 'Blue',
-              qty: 1,
-              price: 1899,
-              status: 'Shipped',
-              statusText: 'Expected by 8 Sep 2026',
-              badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
-              dotColor: 'bg-blue-500',
-              image: '/images/06_shop_product_card_2.jpg',
-              canBuyAgain: false,
-            },
-            {
-              id: 'SAI12458',
-              date: '28 Aug 2026',
-              productName: 'Elegant Unstitched Suit Set',
-              color: 'Pink',
-              qty: 2,
-              price: 4598,
-              status: 'Processing',
-              statusText: 'Estimated by 31 Aug 2026',
-              badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
-              dotColor: 'bg-amber-500',
-              image: '/images/09_shop_product_card_5.jpg',
-              canBuyAgain: false,
-            },
-          ]);
         } else {
           // Real customer with 0 orders placed yet
           setOrders([]);
@@ -180,34 +132,12 @@ export const Account = () => {
       }
     };
     fetchUserOrders();
-  }, [user?.email, userProfile.email, isDemoPatron]);
+  }, [user?.email, userProfile.email]);
 
   // Saved Addresses (Scoped to user account)
   const [addresses, setAddresses] = useState(() => {
     const activeEmail = (user?.email || '').toLowerCase();
     if (!activeEmail) return [];
-    if (activeEmail === 'ravinder@example.com') {
-      return [
-        {
-          id: 1,
-          type: 'Home',
-          isDefault: true,
-          name: 'Ravinder Singh',
-          line1: '255/5 - 1, Karol Bagh',
-          cityState: 'New Delhi, Delhi - 110005',
-          phone: '+91 88149 30229',
-        },
-        {
-          id: 2,
-          type: 'Office',
-          isDefault: false,
-          name: 'Ravinder Singh',
-          line1: 'NX One, 13th Floor, Tower 3, Office No. A-1310 & A-1312',
-          cityState: 'Greater Noida West - 201306',
-          phone: '+91 88149 30229',
-        },
-      ];
-    }
     try {
       const saved = localStorage.getItem(`saisaa_addresses_${activeEmail}`);
       return saved ? JSON.parse(saved) : [];
@@ -220,23 +150,6 @@ export const Account = () => {
   const [paymentMethods, setPaymentMethods] = useState(() => {
     const activeEmail = (user?.email || '').toLowerCase();
     if (!activeEmail) return [];
-    if (activeEmail === 'ravinder@example.com') {
-      return [
-        {
-          id: 1,
-          type: 'UPI',
-          details: 'ravinder@okaxis',
-          isDefault: true,
-        },
-        {
-          id: 2,
-          type: 'Visa',
-          details: '•••• •••• •••• 4242',
-          expiry: '12/28',
-          isDefault: false,
-        },
-      ];
-    }
     try {
       const saved = localStorage.getItem(`saisaa_payments_${activeEmail}`);
       return saved ? JSON.parse(saved) : [];
@@ -253,51 +166,24 @@ export const Account = () => {
       setPaymentMethods([]);
       return;
     }
-    if (activeEmail === 'ravinder@example.com') {
-      setAddresses([
-        {
-          id: 1,
-          type: 'Home',
-          isDefault: true,
-          name: 'Ravinder Singh',
-          line1: '255/5 - 1, Karol Bagh',
-          cityState: 'New Delhi, Delhi - 110005',
-          phone: '+91 88149 30229',
-        },
-        {
-          id: 2,
-          type: 'Office',
-          isDefault: false,
-          name: 'Ravinder Singh',
-          line1: 'NX One, 13th Floor, Tower 3, Office No. A-1310 & A-1312',
-          cityState: 'Greater Noida West - 201306',
-          phone: '+91 88149 30229',
-        },
-      ]);
-      setPaymentMethods([
-        { id: 1, type: 'UPI', details: 'ravinder@okaxis', isDefault: true },
-        { id: 2, type: 'Visa', details: '•••• •••• •••• 4242', expiry: '12/28', isDefault: false },
-      ]);
-    } else {
-      try {
-        const savedAddr = localStorage.getItem(`saisaa_addresses_${activeEmail}`);
-        setAddresses(savedAddr ? JSON.parse(savedAddr) : []);
-      } catch {
-        setAddresses([]);
-      }
-      try {
-        const savedPay = localStorage.getItem(`saisaa_payments_${activeEmail}`);
-        setPaymentMethods(savedPay ? JSON.parse(savedPay) : []);
-      } catch {
-        setPaymentMethods([]);
-      }
+    try {
+      const savedAddr = localStorage.getItem(`saisaa_addresses_${activeEmail}`);
+      setAddresses(savedAddr ? JSON.parse(savedAddr) : []);
+    } catch {
+      setAddresses([]);
+    }
+    try {
+      const savedPay = localStorage.getItem(`saisaa_payments_${activeEmail}`);
+      setPaymentMethods(savedPay ? JSON.parse(savedPay) : []);
+    } catch {
+      setPaymentMethods([]);
     }
   }, [user?.email]);
 
-  // Persist non-demo addresses and payment methods locally
+  // Persist addresses and payment methods locally
   useEffect(() => {
     const activeEmail = (user?.email || '').toLowerCase();
-    if (activeEmail && activeEmail !== 'ravinder@example.com') {
+    if (activeEmail) {
       try {
         localStorage.setItem(`saisaa_addresses_${activeEmail}`, JSON.stringify(addresses));
       } catch (e) {
@@ -308,7 +194,7 @@ export const Account = () => {
 
   useEffect(() => {
     const activeEmail = (user?.email || '').toLowerCase();
-    if (activeEmail && activeEmail !== 'ravinder@example.com') {
+    if (activeEmail) {
       try {
         localStorage.setItem(`saisaa_payments_${activeEmail}`, JSON.stringify(paymentMethods));
       } catch (e) {
@@ -401,7 +287,7 @@ export const Account = () => {
     { id: 'wishlist', label: 'My Wishlist', icon: Heart, count: wishlist.length },
     { id: 'payments', label: 'Payment Methods', icon: CreditCard, count: paymentMethods.length },
     { id: 'details', label: 'Account Details', icon: User },
-    { id: 'notifications', label: 'Notifications', icon: Bell, count: isDemoPatron ? 3 : 0 },
+    { id: 'notifications', label: 'Notifications', icon: Bell, count: 0 },
     { id: 'logout', label: 'Logout', icon: LogOut },
   ];
 
@@ -435,16 +321,6 @@ export const Account = () => {
             >
               <span>Create New Account</span>
             </Link>
-            <div className="pt-2 border-t border-stone-100">
-              <button
-                type="button"
-                onClick={loginDemo}
-                className="w-full py-2 px-3 text-[11px] text-[#09231A] font-semibold bg-[#F5EEDB] hover:bg-[#ede1c7] rounded-lg transition-colors flex items-center justify-center gap-1.5"
-              >
-                <Crown className="w-3.5 h-3.5 text-[#D4AF37]" />
-                <span>Explore as Demo Patron (Ravinder Singh)</span>
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -725,7 +601,7 @@ export const Account = () => {
                     </p>
                     <div>
                       <Link
-                        to="/suits"
+                        to="/unstitched-suits"
                         className="inline-flex items-center gap-2 bg-[#E5C786] hover:bg-[#D4AF37] text-[#09231A] px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-xs active:scale-95"
                       >
                         <span>Shop New Arrivals</span>

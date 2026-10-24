@@ -30,7 +30,7 @@ export const AdminProductForm = () => {
         name: existingProduct.name || '',
         sku: existingProduct.sku || '',
         description: existingProduct.description || '',
-        category: existingProduct.category || 'Suits',
+        category: existingProduct.category || 'Stitched Suits',
         subCategory:
           typeof existingProduct.subCategory === 'object' && existingProduct.subCategory !== null
             ? existingProduct.subCategory.name || ''
@@ -64,8 +64,8 @@ export const AdminProductForm = () => {
       name: '',
       sku: '',
       description: '',
-      category: 'Suits',
-      subCategory: 'Anarkali & Straight Suits',
+      category: 'Stitched Suits',
+      subCategory: '3 pcs set',
       price: '',
       originalPrice: '',
       stock: '15',
@@ -119,17 +119,6 @@ export const AdminProductForm = () => {
       'Pure cotton',
       'Muslin silk',
       'Linen fabric',
-    ],
-    Suits: [
-      '3 pcs set',
-      '2 pcs set',
-      'long kurtis',
-      'Short kurtis',
-    ],
-    Kurtis: [
-      'Everyday & Festive Kurtis',
-      'Chikankari Kurtis',
-      'A-Line Kurtis',
     ],
     Sarees: [
       'Cotton sarees',
@@ -505,24 +494,23 @@ export const AdminProductForm = () => {
                     onChange={(e) => handleCategoryChange(e.target.value)}
                     className="w-full px-3.5 py-2.5 text-xs bg-white rounded-xl border border-stone-200 focus:outline-none focus:border-[#0A261C] text-stone-800 font-bold"
                   >
-                    <option value="Suits">Suits</option>
-                    <option value="Kurtis">Kurtis</option>
-                    <option value="Sarees">Sarees</option>
-                    {categories
-                      ?.filter(
-                        (c) =>
-                          !['suits', 'kurtis', 'sarees'].includes(
-                            c.slug?.toLowerCase()
-                          ) &&
-                          !['suits', 'kurtis', 'sarees'].includes(
-                            c.name?.toLowerCase()
-                          )
-                      )
-                      .map((c) => (
-                        <option key={c.id} value={c.name}>
-                          {c.name}
-                        </option>
-                      ))}
+                    {categories && categories.length > 0 ? (
+                      categories.map((c) => {
+                        const catName = c.name || c;
+                        const catKey = c.id || c._id || catName;
+                        return (
+                          <option key={catKey} value={catName}>
+                            {catName}
+                          </option>
+                        );
+                      })
+                    ) : (
+                      <>
+                        <option value="Stitched Suits">Stitched Suits</option>
+                        <option value="Unstitched Suits">Unstitched Suits</option>
+                        <option value="Sarees">Sarees</option>
+                      </>
+                    )}
                   </select>
                 </div>
               </div>

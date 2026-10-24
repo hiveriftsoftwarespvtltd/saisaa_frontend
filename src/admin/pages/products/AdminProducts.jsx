@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Star, ExternalLink } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, ExternalLink, RefreshCw, AlertTriangle, PackageOpen } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
 import { PageHeader } from '../../components/common/PageHeader';
 import { DataTable } from '../../components/common/DataTable';
@@ -8,7 +8,7 @@ import { StatusBadge } from '../../components/common/StatusBadge';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 
 export const AdminProducts = () => {
-  const { products, deleteProduct } = useAdmin();
+  const { products, deleteProduct, isLoadingProducts, productError, refreshProducts } = useAdmin();
   const navigate = useNavigate();
 
   const [productToDelete, setProductToDelete] = useState(null);
@@ -23,6 +23,20 @@ export const AdminProducts = () => {
         { value: 'Unstitched Suits', label: 'Unstitched Suits' },
         { value: 'Sarees', label: 'Sarees' },
       ],
+      matcher: (rowVal, filterVal) => {
+        const r = String(rowVal || '').toLowerCase().replace(/[-_]+/g, ' ').trim();
+        const f = String(filterVal || '').toLowerCase().replace(/[-_]+/g, ' ').trim();
+        if (f === 'stitched suits') {
+          return r === 'stitched suits' || r === 'stitched-suits' || r === 'suits';
+        }
+        if (f === 'unstitched suits') {
+          return r === 'unstitched suits' || r === 'unstitched-suits';
+        }
+        if (f === 'sarees') {
+          return r === 'sarees' || r === 'saree';
+        }
+        return r === f || r.replace(/\s+/g, '') === f.replace(/\s+/g, '');
+      },
     },
     {
       key: 'subCategory',
@@ -43,6 +57,11 @@ export const AdminProducts = () => {
         { value: 'Silk sarees', label: 'Silk sarees' },
         { value: 'Kota sarees', label: 'Kota sarees' },
       ],
+      matcher: (rowVal, filterVal) => {
+        const r = String(rowVal || '').toLowerCase().replace(/[-_\s]+/g, '');
+        const f = String(filterVal || '').toLowerCase().replace(/[-_\s]+/g, '');
+        return r === f;
+      },
     },
     {
       key: 'status',
@@ -100,18 +119,29 @@ export const AdminProducts = () => {
       key: 'category',
       label: 'Category & Sub-Cat',
       sortable: true,
-      render: (cat, row) => (
-        <div className="space-y-1">
-          <span className="font-bold text-stone-900 block text-xs">{cat}</span>
-          {row.subCategory ? (
-            <span className="inline-block text-[10px] font-medium bg-[#0A261C]/5 text-[#0A261C] border border-[#0A261C]/15 px-2 py-0.5 rounded-md truncate max-w-[130px]">
-              {row.subCategory}
-            </span>
-          ) : (
-            <span className="text-[10px] text-stone-400 italic">None</span>
-          )}
-        </div>
-      ),
+      render: (cat, row) => {
+        const formattedCat =
+          cat === 'stitched-suits' || cat === 'stitched suits'
+            ? 'Stitched Suits'
+            : cat === 'unstitched-suits' || cat === 'unstitched suits'
+            ? 'Unstitched Suits'
+            : cat === 'sarees'
+            ? 'Sarees'
+            : cat;
+
+        return (
+          <div className="space-y-1">
+            <span className="font-bold text-stone-900 block text-xs">{formattedCat}</span>
+            {row.subCategory ? (
+              <span className="inline-block text-[10px] font-medium bg-[#0A261C]/5 text-[#0A261C] border border-[#0A261C]/15 px-2 py-0.5 rounded-md truncate max-w-[130px]">
+                {row.subCategory}
+              </span>
+            ) : (
+              <span className="text-[10px] text-stone-400 italic">None</span>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: 'price',
@@ -233,29 +263,113 @@ export const AdminProducts = () => {
         subtitle={`Managing ${products.length} luxury apparel items across unstitched suits, sarees, and kurtis.`}
         breadcrumbs={[{ label: 'Catalog', path: '/admin/products' }, { label: 'Products' }]}
         actions={
-          <Link
-            to="/admin/products/new"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0A261C] hover:bg-[#123D2E] text-[#F7E7BE] rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition-all active:scale-95"
-          >
-            <Plus className="w-4 h-4 text-[#D4AF37]" />
-            <span>Add New Product</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={refreshProducts}
+              disabled={isLoadingProducts}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-white border border-stone-200 hover:border-stone-300 text-stone-700 rounded-xl text-xs font-semibold shadow-2xs transition-all disabled:opacity-60 cursor-pointer"
+              title="Refresh Products from API"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingProducts ? 'animate-spin text-[#0A261C]' : ''}`} />
+              <span className="hidden sm:inline">{isLoadingProducts ? 'Checking...' : 'Refresh'}</span>
+            </button>
+            <Link
+              to="/admin/products/new"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0A261C] hover:bg-[#123D2E] text-[#F7E7BE] rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition-all active:scale-95"
+            >
+              <Plus className="w-4 h-4 text-[#D4AF37]" />
+              <span>Add New Product</span>
+            </Link>
+          </div>
         }
       />
 
-      {/* Universal DataTable instance */}
-      <DataTable
-        columns={columns}
-        data={products}
-        searchKeys={['name', 'sku', 'category', 'subCategory', 'fabric', 'color']}
-        filters={filterConfig}
-        pageSize={10}
-        selectable={true}
-        onBulkDelete={(ids) => {
-          ids.forEach((id) => deleteProduct(id));
-        }}
-        emptyMessage="No products match the selected category or search filters."
-      />
+      {/* 1. Loading State */}
+      {isLoadingProducts && products.length === 0 && (
+        <div className="bg-white rounded-2xl border border-stone-200/80 p-12 text-center shadow-xs">
+          <div className="flex flex-col items-center justify-center space-y-3">
+            <RefreshCw className="w-8 h-8 text-[#0A261C] animate-spin" />
+            <h4 className="font-serif text-sm font-bold text-stone-800">
+              Fetching Live Products...
+            </h4>
+            <p className="text-xs text-stone-400">
+              Connecting to SAISAA database...
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Error State (Server Down / 502 / Connection Refused) */}
+      {!isLoadingProducts && productError && products.length === 0 && (
+        <div className="bg-white rounded-2xl border border-rose-200 p-8 sm:p-12 text-center shadow-xs space-y-4">
+          <div className="w-14 h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-200">
+            <AlertTriangle className="w-7 h-7" />
+          </div>
+          <div className="max-w-md mx-auto space-y-1.5">
+            <h3 className="font-serif text-lg font-bold text-stone-900">
+              Unable to Load Products from Database
+            </h3>
+            <p className="text-xs font-mono text-rose-700 bg-rose-50 p-2.5 rounded-lg border border-rose-200">
+              {productError}
+            </p>
+            <p className="text-xs text-stone-500 pt-2 leading-relaxed">
+              Backend server respond nahi kar raha (502 Bad Gateway / Network Error). Kripya check karein ki NestJS server port 6001 par running hai ya nahi.
+            </p>
+          </div>
+          <div className="pt-2">
+            <button
+              onClick={refreshProducts}
+              disabled={isLoadingProducts}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0A261C] hover:bg-[#123D2E] text-[#F7E7BE] text-xs font-bold rounded-xl shadow transition-all active:scale-95 disabled:opacity-60 cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingProducts ? 'animate-spin' : ''}`} />
+              <span>Retry Fetching Products</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 3. Empty State (Database is Online but has 0 products) */}
+      {!isLoadingProducts && !productError && products.length === 0 && (
+        <div className="bg-white rounded-2xl border border-stone-200 p-10 sm:p-14 text-center shadow-xs space-y-4">
+          <div className="w-14 h-14 rounded-full bg-amber-50 text-[#D4AF37] flex items-center justify-center mx-auto border border-amber-200">
+            <PackageOpen className="w-7 h-7" />
+          </div>
+          <div className="max-w-md mx-auto space-y-1">
+            <h3 className="font-serif text-lg font-bold text-stone-900">
+              No Products in Database
+            </h3>
+            <p className="text-xs text-stone-500 leading-relaxed">
+              Database connected hai lekin abhi koi product available nahi hai. Naya product add karne ke liye niche button par click karein.
+            </p>
+          </div>
+          <div className="pt-2">
+            <Link
+              to="/admin/products/new"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0A261C] hover:bg-[#123D2E] text-[#F7E7BE] text-xs font-bold rounded-xl shadow transition-all active:scale-95"
+            >
+              <Plus className="w-4 h-4 text-[#D4AF37]" />
+              <span>Add First Product</span>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* 4. Real Products Table */}
+      {products.length > 0 && (
+        <DataTable
+          columns={columns}
+          data={products}
+          searchKeys={['name', 'sku', 'category', 'subCategory', 'fabric', 'color']}
+          filters={filterConfig}
+          pageSize={10}
+          selectable={true}
+          onBulkDelete={(ids) => {
+            ids.forEach((id) => deleteProduct(id));
+          }}
+          emptyMessage="No products match the selected category or search filters."
+        />
+      )}
 
       {/* Confirm Deletion Dialog */}
       <ConfirmDialog

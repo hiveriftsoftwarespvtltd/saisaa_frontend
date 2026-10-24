@@ -22,6 +22,8 @@ import { Register } from './pages/Register';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { About } from './pages/About';
 import { Contact } from './pages/Contact';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
+import { ReturnExchangePolicy } from './pages/ReturnExchangePolicy';
 import { NotFound } from './pages/NotFound';
 
 // Admin System Providers & Layouts
@@ -96,6 +98,9 @@ export default function App() {
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/return-exchange-policy" element={<ReturnExchangePolicy />} />
+                  <Route path="/returns-exchange" element={<ReturnExchangePolicy />} />
                   <Route path="/:categorySlug" element={<Shop />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
@@ -113,19 +118,11 @@ export default function App() {
               />
               <Route
                 path="/admin/register"
-                element={
-                  <AdminProvider>
-                    <AdminRegister />
-                  </AdminProvider>
-                }
+                element={<Navigate to="/admin/login" replace />}
               />
               <Route
                 path="/admin/forgot-password"
-                element={
-                  <AdminProvider>
-                    <AdminForgotPassword />
-                  </AdminProvider>
-                }
+                element={<Navigate to="/admin/login" replace />}
               />
 
               {/* ======================================================== */}

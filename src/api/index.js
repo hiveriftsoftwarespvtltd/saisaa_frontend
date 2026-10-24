@@ -35,7 +35,10 @@ export const orderApi = {
 export const authApi = {
   login: (credentials) => apiClient.post(API_ENDPOINTS.AUTH.LOGIN, credentials),
   register: (userData) => apiClient.post(API_ENDPOINTS.AUTH.REGISTER, userData),
+  forgotPassword: (data) => apiClient.post(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, data),
+  resetPassword: (data) => apiClient.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, data),
 };
+
 
 // Uploads API Service
 export const uploadApi = {

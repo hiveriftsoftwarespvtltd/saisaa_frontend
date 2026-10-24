@@ -4,10 +4,10 @@ import { Eye, EyeOff, Lock, Mail, ShieldCheck, CheckCircle2, AlertCircle } from 
 import { useAdmin } from '../../context/AdminContext';
 
 export const AdminLogin = () => {
-  const [email, setEmail] = useState('admin@saisaa.in');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -88,7 +88,7 @@ export const AdminLogin = () => {
             </div>
           )}
 
-          <form onSubmit={handleLoginSubmit} className="space-y-5">
+          <form onSubmit={handleLoginSubmit} className="space-y-5" autoComplete="off">
             {/* Email Field */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-[#F7E7BE] mb-1.5">
@@ -100,8 +100,9 @@ export const AdminLogin = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@saisaa.in"
+                  placeholder="Enter administrator email"
                   required
+                  autoComplete="off"
                   className="w-full pl-10 pr-4 py-2.5 bg-[#061A13] border border-[#D4AF37]/35 rounded-xl text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all"
                 />
               </div>
@@ -109,25 +110,18 @@ export const AdminLogin = () => {
 
             {/* Password Field */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#F7E7BE]">
-                  Security Password
-                </label>
-                <Link
-                  to="/admin/forgot-password"
-                  className="text-[11px] text-[#D4AF37] hover:underline font-medium"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#F7E7BE] mb-1.5">
+                Security Password
+              </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-[#D4AF37] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
+                  placeholder="Enter administrator password"
                   required
+                  autoComplete="new-password"
                   className="w-full pl-10 pr-10 py-2.5 bg-[#061A13] border border-[#D4AF37]/35 rounded-xl text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all"
                 />
                 <button
@@ -152,10 +146,6 @@ export const AdminLogin = () => {
                 />
                 <span className="text-xs text-stone-300">Keep me signed in</span>
               </label>
-
-              <span className="text-[11px] text-stone-400 italic">
-                Demo: admin@saisaa.in
-              </span>
             </div>
 
             {/* Submit Button */}
@@ -176,17 +166,7 @@ export const AdminLogin = () => {
           </form>
 
           {/* Links Footer */}
-          <div className="pt-4 border-t border-white/10 text-center space-y-3">
-            <p className="text-xs text-stone-400">
-              Need administrator credentials?{' '}
-              <Link
-                to="/admin/register"
-                className="text-[#D4AF37] hover:underline font-bold ml-1"
-              >
-                Register Staff
-              </Link>
-            </p>
-
+          <div className="pt-4 border-t border-white/10 text-center">
             <Link
               to="/"
               className="inline-flex items-center gap-1.5 text-xs text-stone-400 hover:text-white transition-colors"

@@ -23,17 +23,46 @@ import { QuickViewModal } from '../components/QuickViewModal';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
-import { apiClient, API_ENDPOINTS } from '../config';
+import { apiClient, API_ENDPOINTS, API_BASE_URL } from '../config';
 
 export const Home = () => {
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [productsList, setProductsList] = useState(PRODUCTS);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { addToCart } = useCart();
   const { addToast } = useToast();
+
+  // Fetch categories directly from backend API
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCategories = async () => {
+      try {
+        setIsLoadingCategories(true);
+        const res = await apiClient.get(API_ENDPOINTS.CATEGORIES.BASE);
+        const serverItems = res?.data || res;
+        if (Array.isArray(serverItems) && isMounted) {
+          const active = serverItems.filter(
+            (c) => !c.status || c.status === 'Active'
+          );
+          setCategories(active);
+        }
+      } catch (err) {
+        console.error('Home page categories API fetch error:', err);
+      } finally {
+        if (isMounted) setIsLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Fetch live products from backend API
   useEffect(() => {
@@ -276,103 +305,84 @@ export const Home = () => {
       </section>
 
       {/* ========================================================= */}
-      {/* 2. TRINITY ARCHES (SUITS, KURTIS, SAREES)                 */}
+      {/* 2. TRINITY ARCHES (CATEGORIES API)                        */}
       {/* ========================================================= */}
       <section className="relative py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Subtle background flourishes */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
-
-          {/* Card 1: SUITS */}
-          <div className="group relative flex flex-col items-center">
-            <Link
-              to="/suits"
-              className="relative w-full aspect-[3/4.4] rounded-t-[140px] sm:rounded-t-[180px] overflow-hidden border border-[#D4AF37]/35 shadow-md group-hover:shadow-xl transition-all duration-500 block bg-[#EFE9DF]"
-            >
-              <img
-                src="/images/10_category_suits.jpg"
-                alt="Suits - Effortless Grace"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+        {/* Loading Skeleton */}
+        {isLoadingCategories ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
+            {[1, 2, 3].map((n) => (
+              <div
+                key={n}
+                className="w-full aspect-[3/4.4] rounded-t-[140px] sm:rounded-t-[180px] bg-stone-200/60 animate-pulse border border-[#D4AF37]/20"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#082017]/85 via-black/20 to-transparent" />
-
-              {/* Bottom Card Overlay */}
-              <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between text-white">
-                <div>
-                  <h3 className="font-serif text-2xl font-bold tracking-wider text-white">
-                    SUITS
-                  </h3>
-                  <p className="text-[10px] uppercase tracking-[0.25em] text-[#E5C786] font-medium mt-0.5">
-                    EFFORTLESS GRACE
-                  </p>
-                </div>
-                <div className="w-9 h-9 rounded-full bg-[#E5C786] text-[#09231A] flex items-center justify-center shadow group-hover:scale-110 transition-transform">
-                  <ArrowRight className="w-4 h-4" />
-                </div>
-              </div>
-            </Link>
+            ))}
           </div>
+        ) : categories.length > 0 ? (
+          <div
+            className={`grid grid-cols-1 ${
+              categories.length === 1
+                ? 'max-w-md mx-auto'
+                : categories.length === 2
+                ? 'md:grid-cols-2 max-w-3xl mx-auto'
+                : 'md:grid-cols-3'
+            } gap-8 lg:gap-10`}
+          >
+            {categories.map((cat, idx) => {
+              const catId = cat.id || cat._id || cat.slug || idx;
+              const targetLink = cat.slug
+                ? `/${cat.slug}`
+                : `/shop?category=${encodeURIComponent(cat.name)}`;
+              const rawImage = cat.image || '';
+              const resolvedImage =
+                rawImage.startsWith('http') || rawImage.startsWith('data:')
+                  ? rawImage
+                  : rawImage.startsWith('/uploads/')
+                  ? `${API_BASE_URL.replace(/\/api\/v1\/?$/, '')}${rawImage}`
+                  : rawImage.includes('02_category_suits')
+                  ? '/images/10_category_suits.jpg'
+                  : rawImage.includes('03_category_kurtis')
+                  ? '/images/11_category_kurtis.jpg'
+                  : rawImage.includes('04_category_sarees')
+                  ? '/images/12_category_sarees.jpg'
+                  : rawImage || '/images/10_category_suits.jpg';
 
-          {/* Card 2: KURTIS */}
-          <div className="group relative flex flex-col items-center">
-            <Link
-              to="/kurtis"
-              className="relative w-full aspect-[3/4.4] rounded-t-[140px] sm:rounded-t-[180px] overflow-hidden border border-[#D4AF37]/35 shadow-md group-hover:shadow-xl transition-all duration-500 block bg-[#EFE9DF]"
-            >
-              <img
-                src="/images/11_category_kurtis.jpg"
-                alt="Kurtis - Everyday Elegance"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#082017]/85 via-black/20 to-transparent" />
+              return (
+                <div key={catId} className="group relative flex flex-col items-center">
+                  <Link
+                    to={targetLink}
+                    className="relative w-full aspect-[3/4.4] rounded-t-[140px] sm:rounded-t-[180px] overflow-hidden border border-[#D4AF37]/35 shadow-md group-hover:shadow-xl transition-all duration-500 block bg-[#EFE9DF]"
+                  >
+                    <img
+                      src={resolvedImage}
+                      alt={cat.name}
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#082017]/85 via-black/20 to-transparent" />
 
-              {/* Bottom Card Overlay */}
-              <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between text-white">
-                <div>
-                  <h3 className="font-serif text-2xl font-bold tracking-wider text-white">
-                    KURTIS
-                  </h3>
-                  <p className="text-[10px] uppercase tracking-[0.25em] text-[#E5C786] font-medium mt-0.5">
-                    EVERYDAY ELEGANCE
-                  </p>
+                    {/* Bottom Card Overlay */}
+                    <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between text-white">
+                      <div>
+                        <h3 className="font-serif text-2xl font-bold tracking-wider text-white uppercase">
+                          {cat.name}
+                        </h3>
+                        {cat.description && (
+                          <p className="text-[10px] uppercase tracking-[0.25em] text-[#E5C786] font-medium mt-0.5 line-clamp-1 max-w-[220px]">
+                            {cat.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="w-9 h-9 rounded-full bg-[#E5C786] text-[#09231A] flex items-center justify-center shadow group-hover:scale-110 transition-transform shrink-0 ml-3">
+                        <ArrowRight className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </Link>
                 </div>
-                <div className="w-9 h-9 rounded-full bg-[#E5C786] text-[#09231A] flex items-center justify-center shadow group-hover:scale-110 transition-transform">
-                  <ArrowRight className="w-4 h-4" />
-                </div>
-              </div>
-            </Link>
+              );
+            })}
           </div>
-
-          {/* Card 3: SAREES */}
-          <div className="group relative flex flex-col items-center">
-            <Link
-              to="/sarees"
-              className="relative w-full aspect-[3/4.4] rounded-t-[140px] sm:rounded-t-[180px] overflow-hidden border border-[#D4AF37]/35 shadow-md group-hover:shadow-xl transition-all duration-500 block bg-[#EFE9DF]"
-            >
-              <img
-                src="/images/12_category_sarees.jpg"
-                alt="Sarees - Timeless Tradition"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#082017]/85 via-black/20 to-transparent" />
-
-              {/* Bottom Card Overlay */}
-              <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between text-white">
-                <div>
-                  <h3 className="font-serif text-2xl font-bold tracking-wider text-white">
-                    SAREES
-                  </h3>
-                  <p className="text-[10px] uppercase tracking-[0.25em] text-[#E5C786] font-medium mt-0.5">
-                    TIMELESS TRADITION
-                  </p>
-                </div>
-                <div className="w-9 h-9 rounded-full bg-[#E5C786] text-[#09231A] flex items-center justify-center shadow group-hover:scale-110 transition-transform">
-                  <ArrowRight className="w-4 h-4" />
-                </div>
-              </div>
-            </Link>
-          </div>
-
-        </div>
+        ) : null}
       </section>
 
       {/* ========================================================= */}
@@ -526,8 +536,8 @@ export const Home = () => {
             {/* Left Photo */}
             <div className="sm:col-span-6 h-72 sm:h-96 overflow-hidden">
               <img
-                src="/images/04_category_sarees.jpg"
-                alt="Tradition Lives On"
+                src="/images/12_category_sarees.jpg"
+                alt="Tradition Lives On Sarees"
                 className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-700"
               />
             </div>
@@ -552,7 +562,7 @@ export const Home = () => {
             </div>
           </div>
 
-          {/* Banner 2: Everyday Elegance (Kurtis) */}
+          {/* Banner 2: Everyday Elegance (Stitched Suits) */}
           <div className="bg-[#FBEAE3] rounded-2xl overflow-hidden border border-[#D4AF37]/30 shadow-sm grid grid-cols-1 sm:grid-cols-12 items-center">
             {/* Left Text */}
             <div className="sm:col-span-6 p-6 sm:p-8 space-y-4 text-left order-2 sm:order-1">
@@ -561,14 +571,14 @@ export const Home = () => {
                 Elegance
               </h3>
               <p className="text-xs text-stone-600 leading-relaxed font-light">
-                Kurtis for every mood, crafted for your everyday moments.
+                Tailored kurtis & stitched suits crafted for effortless grace and everyday celebrations.
               </p>
               <div className="pt-2">
                 <Link
-                  to="/kurtis"
+                  to="/stitched-suits"
                   className="inline-flex items-center gap-2 bg-[#E5C786] hover:bg-[#F3DC9B] text-[#09231A] text-[11px] font-bold uppercase tracking-wider py-2.5 px-5 rounded shadow-sm transition-all"
                 >
-                  <span>EXPLORE KURTIS</span>
+                  <span>EXPLORE STITCHED SUITS</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
@@ -576,8 +586,8 @@ export const Home = () => {
             {/* Right Photo */}
             <div className="sm:col-span-6 h-72 sm:h-96 overflow-hidden order-1 sm:order-2">
               <img
-                src="/images/03_category_kurtis.jpg"
-                alt="Everyday Elegance"
+                src="/images/11_category_kurtis.jpg"
+                alt="Everyday Elegance Stitched Suits"
                 className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-700"
               />
             </div>

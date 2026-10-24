@@ -95,8 +95,10 @@ export const Cart = () => {
     discountAmount = cartDiscount;
   }
 
-  const shippingFee = 0; // Free as per screenshot
-  const totalAmount = Math.max(0, subtotal - discountAmount + shippingFee);
+  const shippingFee = 0; // Free complimentary shipping
+  const taxableAmount = Math.max(0, subtotal - discountAmount);
+  const taxAmount = Math.round(taxableAmount * 0.05);
+  const totalAmount = taxableAmount + taxAmount + shippingFee;
 
   const handleApplyCoupon = async (e) => {
     e.preventDefault();
@@ -271,7 +273,8 @@ export const Cart = () => {
                               <span className="font-medium text-stone-700">Fabric:</span> {item.product.fabric || 'Pure Cotton'}
                             </p>
                             <p className="text-[11px] text-stone-400">
-                              Size: <strong className="text-stone-700">{item.size}</strong>
+                              Size: <strong className="text-stone-700">{item.size}</strong> &bull;{' '}
+                              <span>GST (5%): ₹{Math.round(((item.product.price + (item.stitchingFee || 0)) * item.quantity) * 0.05).toLocaleString('en-IN')}</span>
                             </p>
 
                             <button
@@ -433,11 +436,19 @@ export const Cart = () => {
                   )}
                 </div>
 
+                {/* GST (5%) */}
+                <div className="flex justify-between items-center pt-2">
+                  <span>GST (5%)</span>
+                  <span className="font-semibold text-stone-900">
+                    ₹{taxAmount.toLocaleString('en-IN')}
+                  </span>
+                </div>
+
                 {/* Shipping */}
                 <div className="flex justify-between items-center pt-2">
                   <span>Shipping</span>
                   <span className="text-[#18523D] font-bold uppercase text-[11px]">
-                    Free
+                    Free (Complimentary)
                   </span>
                 </div>
 

@@ -18,7 +18,7 @@ import { useToast } from '../context/ToastContext';
 export const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, loginDemo } = useAuth();
+  const { login } = useAuth();
   const { addToast } = useToast();
 
   // If already logged in, offer quick jump to account
@@ -82,15 +82,6 @@ export const Login = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleDemoSignIn = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      loginDemo();
-      navigate(from, { replace: true });
-    }, 400);
   };
 
   return (
@@ -307,19 +298,6 @@ export const Login = () => {
                 </button>
               </form>
 
-              {/* One-Click Quick Demo Sign In */}
-              <div className="mt-5 pt-4 border-t border-stone-100">
-                <button
-                  type="button"
-                  onClick={handleDemoSignIn}
-                  disabled={isLoading}
-                  className="w-full py-2.5 px-4 bg-[#F5EEDB] hover:bg-[#ede1c7] text-[#09231A] border border-[#D4AF37]/50 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm"
-                >
-                  <Crown className="w-3.5 h-3.5 text-[#D4AF37]" />
-                  <span>Instant 1-Click Demo Login (Ravinder Singh)</span>
-                </button>
-              </div>
-
               {/* Create Account Link */}
               <div className="mt-6 text-center text-xs text-stone-600">
                 <span>New to Saisaa? </span>
@@ -332,7 +310,7 @@ export const Login = () => {
               </div>
 
               {/* Admin Portal Gateway */}
-              <div className="mt-8 pt-4 border-t border-stone-100 flex items-center justify-between text-[11px] text-stone-400">
+              {/* <div className="mt-8 pt-4 border-t border-stone-100 flex items-center justify-between text-[11px] text-stone-400">
                 <span>Looking for Atelier Staff Portal?</span>
                 <Link
                   to="/admin/login"
@@ -340,7 +318,7 @@ export const Login = () => {
                 >
                   Admin Access &rarr;
                 </Link>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

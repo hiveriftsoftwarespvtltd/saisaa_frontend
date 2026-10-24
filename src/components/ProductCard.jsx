@@ -17,7 +17,7 @@ export const ProductCard = ({ product, onQuickView }) => {
     <div className="group relative bg-white rounded-xl overflow-hidden border border-[#D4AF37]/20 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col">
       {/* Image Container (Optimized 4:5 ratio with object-cover) */}
       <div className="relative aspect-[4/5] overflow-hidden bg-[#FAF7F2]">
-        <Link to={`/product/${product.id}`} className="block w-full h-full">
+        <Link to={`/product/${product.id}`} state={{ product }} className="block w-full h-full">
           <img
             src={product.cardImage || product.images?.[0] || '/images/05_shop_product_card_1.jpg'}
             alt={product.name}
@@ -106,7 +106,7 @@ export const ProductCard = ({ product, onQuickView }) => {
             </div>
           </div>
 
-          <Link to={`/product/${product.id}`} className="block group-hover:text-[#18523D] transition-colors">
+          <Link to={`/product/${product.id}`} state={{ product }} className="block group-hover:text-[#18523D] transition-colors">
             <h3 className="font-serif text-base font-semibold text-stone-900 line-clamp-1 mb-1">
               {product.name}
             </h3>

@@ -73,7 +73,7 @@ export const Navbar = () => {
     <header className="sticky top-0 z-50 w-full bg-[#0A291E] text-stone-100 border-b border-[#D4AF37]/20 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          
+
           {/* Mobile Menu & Search Icon */}
           <div className="flex items-center lg:hidden">
             <button
@@ -93,13 +93,27 @@ export const Navbar = () => {
           </div>
 
           {/* Brand Laurel Logo */}
-          <Link to="/" className="flex items-center group py-1" aria-label="SAISAA Home">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border border-[#D4AF37]/80 shadow-[0_0_14px_rgba(212,175,55,0.4)] transition-transform duration-300 group-hover:scale-105">
+          <Link to="/" className="flex items-center gap-3 group py-1" aria-label="SAISAA Home">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden border border-[#D4AF37]/80 shadow-[0_0_14px_rgba(212,175,55,0.4)] transition-transform duration-300 group-hover:scale-105 shrink-0">
               <img
                 src="/saisaa-logo.jpg"
                 alt="Saisaa"
                 className="w-full h-full object-cover"
               />
+            </div>
+            <div className="flex flex-col">
+              <span
+                className="text-2xl sm:text-3xl font-bold tracking-normal text-[#F7E7BE] leading-none group-hover:text-white transition-colors"
+                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+              >
+                Saisaa
+              </span>
+              <span
+                className="text-[9px] sm:text-[10px] uppercase tracking-[0.24em] text-[#D4AF37] font-semibold mt-1"
+                style={{ fontFamily: "'Cinzel', Georgia, serif" }}
+              >
+               
+              </span>
             </div>
           </Link>
 
@@ -110,10 +124,9 @@ export const Navbar = () => {
                 key={link.path}
                 to={link.path}
                 className={({ isActive }) =>
-                  `relative text-xs xl:text-sm tracking-wider uppercase transition-all duration-200 py-1 ${
-                    isActive
-                      ? 'text-[#F7E7BE] font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#D4AF37]'
-                      : 'text-stone-300 hover:text-[#F7E7BE]'
+                  `relative text-xs xl:text-sm tracking-wider uppercase transition-all duration-200 py-1 ${isActive
+                    ? 'text-[#F7E7BE] font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#D4AF37]'
+                    : 'text-stone-300 hover:text-[#F7E7BE]'
                   }`
                 }
               >
@@ -220,8 +233,7 @@ export const Navbar = () => {
                 to={link.path}
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
-                  `text-base uppercase tracking-widest py-2.5 border-b border-white/5 transition-colors ${
-                    isActive ? 'text-[#F7E7BE] font-bold' : 'text-stone-300 hover:text-[#F7E7BE]'
+                  `text-base uppercase tracking-widest py-2.5 border-b border-white/5 transition-colors ${isActive ? 'text-[#F7E7BE] font-bold' : 'text-stone-300 hover:text-[#F7E7BE]'
                   }`
                 }
               >
@@ -234,8 +246,7 @@ export const Navbar = () => {
                   to="/account"
                   onClick={() => setMobileMenuOpen(false)}
                   className={({ isActive }) =>
-                    `text-base uppercase tracking-widest py-2.5 border-b border-white/5 transition-colors flex items-center justify-between ${
-                      isActive ? 'text-[#F7E7BE] font-bold' : 'text-stone-300 hover:text-[#F7E7BE]'
+                    `text-base uppercase tracking-widest py-2.5 border-b border-white/5 transition-colors flex items-center justify-between ${isActive ? 'text-[#F7E7BE] font-bold' : 'text-stone-300 hover:text-[#F7E7BE]'
                     }`
                   }
                 >

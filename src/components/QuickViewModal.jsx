@@ -1,11 +1,21 @@
 import React, { useState } from 'react';
-import { X, Star, ShoppingBag, Heart, Check } from 'lucide-react';
+import { X, Star, ShoppingBag, Heart, Check, Scissors } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { Link } from 'react-router-dom';
 
 export const QuickViewModal = ({ product, onClose }) => {
-  const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0] || 'Standard');
+  const isUnstitched = Boolean(
+    (typeof product?.category === 'string' && product.category.toLowerCase().includes('unstitched')) ||
+    (typeof product?.subCategory === 'string' && product.subCategory.toLowerCase().includes('unstitched')) ||
+    (typeof product?.name === 'string' && product.name.toLowerCase().includes('unstitched')) ||
+    (typeof product?.slug === 'string' && product.slug.toLowerCase().includes('unstitched')) ||
+    (Array.isArray(product?.tags) && product.tags.some((t) => typeof t === 'string' && t.toLowerCase().includes('unstitched')))
+  );
+
+  const [selectedSize, setSelectedSize] = useState(() =>
+    isUnstitched ? 'Unstitched (Free Size)' : (product?.sizes?.[0] || 'Standard')
+  );
   const [quantity, setQuantity] = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
@@ -17,7 +27,7 @@ export const QuickViewModal = ({ product, onClose }) => {
   const isWishlisted = isInWishlist(product.id);
 
   const handleAdd = () => {
-    addToCart(product, selectedSize, quantity);
+    addToCart(product, isUnstitched ? 'Unstitched (Free Size)' : selectedSize, quantity);
     onClose();
   };
 
@@ -118,31 +128,55 @@ export const QuickViewModal = ({ product, onClose }) => {
             </p>
 
             {/* Size Selector */}
-            <div className="mb-5">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-stone-800">
-                  Select Size
-                </label>
-                <span className="text-[11px] text-[#18523D] underline cursor-pointer">
-                  Size Guide
+            {isUnstitched ? (
+              <div className="mb-5 p-3 bg-[#FAF7F2] border border-[#D4AF37]/30 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-[#18523D]/10 flex items-center justify-center text-[#18523D] shrink-0">
+                    <Scissors className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-wider text-stone-900">
+                      Size: <span className="text-[#18523D]">Unstitched Fabric (Free Size)</span>
+                    </div>
+                    <p className="text-[10px] text-stone-500 mt-0.5">
+                      Bespoke Fabric Set &bull; Free size to tailor to your custom fit
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-[#18523D]/10 text-[#18523D] px-2.5 py-1 rounded-full whitespace-nowrap">
+                  Free Size
                 </span>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {product.sizes.map((sz) => (
-                  <button
-                    key={sz}
-                    onClick={() => setSelectedSize(sz)}
-                    className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg border transition-all ${
-                      selectedSize === sz
-                        ? 'bg-[#09231A] text-[#F7E7BE] border-[#09231A] shadow-sm'
-                        : 'border-stone-300 text-stone-700 hover:border-stone-400 bg-white'
-                    }`}
+            ) : (
+              <div className="mb-5">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-stone-800">
+                    Select Size
+                  </label>
+                  <span
+                    onClick={() => alert('Standard Saisaa Couture Sizing: XS (Bust 34"), S (Bust 36"), M (Bust 38"), L (Bust 40"), XL (Bust 42"), XXL (Bust 44"). Custom tailored measurements also accepted.')}
+                    className="text-[11px] text-[#18523D] underline cursor-pointer hover:text-[#09231A]"
                   >
-                    {sz}
-                  </button>
-                ))}
+                    Size Guide
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {product.sizes?.map((sz) => (
+                    <button
+                      key={sz}
+                      onClick={() => setSelectedSize(sz)}
+                      className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${
+                        selectedSize === sz
+                          ? 'bg-[#09231A] text-[#F7E7BE] border-[#09231A] shadow-sm'
+                          : 'border-stone-300 text-stone-700 hover:border-stone-400 bg-white'
+                      }`}
+                    >
+                      {sz}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
 
             {/* Quantity */}
@@ -192,6 +226,7 @@ export const QuickViewModal = ({ product, onClose }) => {
 
             <Link
               to={`/product/${product.id}`}
+              state={{ product }}
               onClick={onClose}
               className="block text-center text-xs text-[#18523D] hover:underline font-semibold"
             >

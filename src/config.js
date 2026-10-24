@@ -3,12 +3,21 @@ import { API_ENDPOINTS } from './api/endpoints';
 
 export { API_ENDPOINTS };
 
-// Backend Base URL
+// Backend Base URL with smart auto-detection (Localhost -> port 6001, Production -> api.saisaa.com)
 export const API_BASE_URL =
-  // import.meta.env.VITE_API_BASE_URL || 'http://localhost:6001/api/v1';
-  import.meta.env.VITE_API_BASE_URL || 'https://api.saisaa.com/api/v1';
+  import.meta.env?.VITE_API_BASE_URL ||
+  (typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:6001/api/v1'
+    : 'https://api.saisaa.com/api/v1');
+
+// Razorpay Public Client Key (Safe for frontend bundle)
+export const RAZORPAY_KEY_ID =
+  import.meta.env?.VITE_RAZORPAY_KEY_ID || 'rzp_live_Tqs7ZkrK4xTtmd';
+
 
 // Pre-configured Axios Client with interceptors
+
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -52,4 +61,6 @@ export default {
   API_BASE_URL,
   apiClient,
   API_ENDPOINTS,
+  RAZORPAY_KEY_ID,
 };
+

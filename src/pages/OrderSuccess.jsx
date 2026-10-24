@@ -373,9 +373,17 @@ export const OrderSuccess = () => {
                 <div className="flex justify-between items-center">
                   <span>Shipping Charges</span>
                   <span className="text-[#18523D] font-bold uppercase text-[11px]">
-                    {savedOrder?.shipping && savedOrder.shipping > 0 ? `₹${savedOrder.shipping}` : 'FREE'}
+                    {savedOrder?.shipping && savedOrder.shipping > 0 ? `₹${savedOrder.shipping}` : 'FREE (Complimentary)'}
                   </span>
                 </div>
+                {(savedOrder?.tax > 0 || subtotal > 0) && (
+                  <div className="flex justify-between items-center">
+                    <span>GST (5%)</span>
+                    <span className="font-semibold text-stone-900">
+                      ₹{(savedOrder?.tax ?? Math.round(subtotal * 0.05)).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                )}
                 {discount > 0 && (
                   <div className="flex justify-between items-center text-[#18523D] font-semibold">
                     <span>Discount</span>

@@ -282,11 +282,17 @@ export const CartProvider = ({ children }) => {
     }
   }
 
-  const freeShippingThreshold = 4999;
-  const isFreeShipping = subtotal >= freeShippingThreshold;
-  const shippingFee = items.length === 0 ? 0 : isFreeShipping ? 0 : 350;
-  const freeShippingNeeded = Math.max(0, freeShippingThreshold - subtotal);
-  const finalTotal = Math.max(0, subtotal - discountAmount + shippingFee);
+  // 5% GST on each product
+  const gstRate = 0.05;
+  const taxableAmount = Math.max(0, subtotal - discountAmount);
+  const taxAmount = Math.round(taxableAmount * gstRate);
+
+  // Complimentary Free Shipping across all orders
+  const freeShippingThreshold = 0;
+  const isFreeShipping = true;
+  const shippingFee = 0;
+  const freeShippingNeeded = 0;
+  const finalTotal = taxableAmount + taxAmount + shippingFee;
 
   return (
     <CartContext.Provider
@@ -304,6 +310,9 @@ export const CartProvider = ({ children }) => {
         removeCoupon,
         subtotal,
         discountAmount,
+        taxAmount,
+        gstAmount: taxAmount,
+        gstRate,
         shippingFee,
         finalTotal,
         totalItemCount,

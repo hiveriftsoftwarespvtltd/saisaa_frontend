@@ -18,7 +18,16 @@ import {
 import { useAdmin } from '../context/AdminContext';
 
 export const AdminTopbar = ({ onToggleSidebar }) => {
-  const { adminUser, notifications, markAllNotificationsAsRead, logout } = useAdmin();
+  const {
+    adminUser,
+    notifications,
+    markAllNotificationsAsRead,
+    logout,
+    isServerOnline,
+    serverError,
+    retryAll,
+    isRetryingAll,
+  } = useAdmin();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
@@ -81,8 +90,29 @@ export const AdminTopbar = ({ onToggleSidebar }) => {
         </form>
       </div>
 
-      {/* 2. Right: Store Link, Notifications, Profile Dropdown */}
+      {/* 2. Right: Server Health Badge, Store Link, Notifications, Profile Dropdown */}
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* Live Server Connection Status Indicator */}
+        <button
+          onClick={retryAll}
+          disabled={isRetryingAll}
+          title={isServerOnline ? 'Backend API connected (Click to refresh)' : `Backend Server Down: ${serverError || '502 Bad Gateway'}. Click to reconnect.`}
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all cursor-pointer ${
+            isServerOnline
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+              : 'bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100 animate-pulse'
+          }`}
+        >
+          <span
+            className={`w-2 h-2 rounded-full ${
+              isServerOnline ? 'bg-emerald-500' : 'bg-rose-600 animate-ping'
+            }`}
+          />
+          <span className="hidden sm:inline">
+            {isRetryingAll ? 'Checking...' : isServerOnline ? 'API Connected' : 'Server Down'}
+          </span>
+        </button>
+
         {/* Quick View Live Store Link */}
         <Link
           to="/"

@@ -86,8 +86,14 @@ const FilterContent = ({
                     ? allProducts.length
                     : allProducts.filter((p) => {
                         const pCat = (p.category || '').toLowerCase();
-                        if (cat.id === 'stitched-suits' || cat.id === 'unstitched-suits') {
-                          return pCat === 'suits' || pCat === cat.id;
+                        if (cat.id === 'stitched-suits' || cat.id === 'stitched suits') {
+                          return pCat === 'stitched-suits' || pCat === 'stitched suits';
+                        }
+                        if (cat.id === 'unstitched-suits' || cat.id === 'unstitched suits') {
+                          return pCat === 'unstitched-suits' || pCat === 'unstitched suits';
+                        }
+                        if (cat.id === 'sarees') {
+                          return pCat === 'sarees' || pCat === 'saree';
                         }
                         return pCat === cat.id.toLowerCase();
                       }).length}

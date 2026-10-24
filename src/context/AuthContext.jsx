@@ -4,46 +4,43 @@ import { apiClient, API_ENDPOINTS } from '../config';
 
 const AuthContext = createContext(null);
 
-const DEFAULT_DEMO_USER = {
-  id: 'CUST-1001',
-  name: 'Ravinder Singh',
-  email: 'ravinder@example.com',
-  phone: '+91 88149 30229',
-  memberSince: 'September 2024',
-  tier: 'Royal Privé Member',
-  loyaltyPoints: 2450,
-  avatar: null,
-};
-
 export const AuthProvider = ({ children }) => {
   const { addToast } = useToast();
 
-  // Load customer state from localStorage
+  // Load customer state from localStorage (strictly real users, purge any legacy demo user)
   const [user, setUser] = useState(() => {
     try {
       const stored = localStorage.getItem('saisaa_customer_user');
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (parsed?.email === 'ravinder@example.com') {
+          localStorage.removeItem('saisaa_customer_user');
+          localStorage.setItem('saisaa_customer_logged_in', 'false');
+          return null;
+        }
+        return parsed;
       }
-      const loggedInFlag = localStorage.getItem('saisaa_customer_logged_in');
-      if (loggedInFlag === 'false') {
-        return null;
-      }
-      return DEFAULT_DEMO_USER;
+      return null;
     } catch {
-      return DEFAULT_DEMO_USER;
+      return null;
     }
   });
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     try {
       const token = localStorage.getItem('saisaa_token');
-      if (token) return true;
+      const stored = localStorage.getItem('saisaa_customer_user');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed?.email === 'ravinder@example.com') {
+          return false;
+        }
+      }
       const loggedInFlag = localStorage.getItem('saisaa_customer_logged_in');
       if (loggedInFlag === 'false') return false;
-      return !!user;
+      return Boolean(stored || token);
     } catch {
-      return true;
+      return false;
     }
   });
 
@@ -105,14 +102,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Quick Demo Login for instant testing
-  const loginDemo = () => {
-    setUser(DEFAULT_DEMO_USER);
-    setIsAuthenticated(true);
-    addToast('Signed in as demo customer (Ravinder Singh)', 'cart');
-    return true;
-  };
-
   // Real Customer Registration via Axios POST /auth/register (Does not auto-login)
   const register = async ({ fullName, email, password }) => {
     const cleanEmail = email.trim().toLowerCase();
@@ -163,7 +152,6 @@ export const AuthProvider = ({ children }) => {
         user,
         isAuthenticated,
         login,
-        loginDemo,
         register,
         logout,
         updateProfile,

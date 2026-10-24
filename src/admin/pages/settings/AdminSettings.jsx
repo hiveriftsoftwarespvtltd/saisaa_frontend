@@ -35,10 +35,10 @@ export const AdminSettings = () => {
   });
 
   const [shippingSettings, setShippingSettings] = useState({
-    freeShippingThreshold: 4999,
-    standardShippingFee: 350,
-    expressShippingFee: 650,
-    enableCod: true,
+    freeShippingThreshold: 0,
+    standardShippingFee: 0,
+    expressShippingFee: 0,
+    enableCod: false,
   });
 
   const [paymentSettings, setPaymentSettings] = useState({
@@ -347,19 +347,13 @@ export const AdminSettings = () => {
             </div>
 
             <div className="pt-2">
-              <label className="flex items-center gap-2.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={paymentSettings.codAvailable}
-                  onChange={(e) => setPaymentSettings({ ...paymentSettings, codAvailable: e.target.checked })}
-                  className="rounded border-stone-300 text-[#0A261C] focus:ring-[#0A261C] w-4 h-4"
-                />
-                <span className="font-semibold text-stone-800">
-                  Enable Cash on Delivery (COD) for eligible pincodes
-                </span>
-              </label>
+              <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs text-stone-600 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Store Policy: 100% Prepaid Orders via Razorpay (UPI, Cards & NetBanking). Cash on Delivery (COD) is permanently disabled.</span>
+              </div>
             </div>
           </div>
+
 
           <div className="pt-2">
             <button

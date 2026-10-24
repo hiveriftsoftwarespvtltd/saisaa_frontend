@@ -82,9 +82,30 @@ export const DataTable = ({
       for (const [filterKey, filterVal] of Object.entries(filterValues)) {
         if (!filterVal || filterVal === 'all') continue;
         const rowVal = row[filterKey];
-        if (String(rowVal).toLowerCase() !== String(filterVal).toLowerCase()) {
-          return false;
+
+        // Check for custom matcher defined on filter config
+        const filterDef = filters.find((f) => f.key === filterKey);
+        if (filterDef && typeof filterDef.matcher === 'function') {
+          if (!filterDef.matcher(rowVal, filterVal, row)) {
+            return false;
+          }
+          continue;
         }
+
+        const normalize = (v) =>
+          String(v ?? '')
+            .toLowerCase()
+            .replace(/[-_]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        const nRow = normalize(rowVal);
+        const nFilter = normalize(filterVal);
+
+        if (nRow === nFilter) continue;
+        if (nRow.replace(/\s+/g, '') === nFilter.replace(/\s+/g, '')) continue;
+
+        return false;
       }
 
       return true;

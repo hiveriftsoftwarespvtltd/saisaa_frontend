@@ -14,7 +14,7 @@ import {
   MessageSquare,
   TicketPercent,
   BarChart3,
-  Settings,
+  // Settings,
   LogOut,
   X,
   ExternalLink,
@@ -75,12 +75,12 @@ export const AdminSidebar = ({ mobileOpen, onCloseMobile }) => {
         { label: 'Analytics', path: '/admin/analytics', icon: BarChart3 },
       ],
     },
-    {
-      title: 'SYSTEM',
-      items: [
-        { label: 'Settings', path: '/admin/settings', icon: Settings },
-      ],
-    },
+    // {
+    //   title: 'SYSTEM',
+    //   items: [
+    //     { label: 'Settings', path: '/admin/settings', icon: Settings },
+    //   ],
+    // },
   ];
 
   return (
