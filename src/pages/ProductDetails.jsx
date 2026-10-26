@@ -27,7 +27,16 @@ import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { ProductCard } from '../components/ProductCard';
-import { apiClient, API_ENDPOINTS } from '../config';
+// Helper for robust case/hyphen-insensitive category matching
+const normalizeCategory = (cat) => {
+  if (!cat || typeof cat !== 'string') return '';
+  const c = cat.toLowerCase().replace(/[-_\s]+/g, '');
+  if (c.includes('unstitched')) return 'unstitched-suits';
+  if (c.includes('stitched') || c.includes('suit')) return 'suits';
+  if (c.includes('saree')) return 'sarees';
+  if (c.includes('kurti')) return 'kurtis';
+  return cat.toLowerCase().trim();
+};
 
 export const ProductDetails = () => {
   const { id } = useParams();
@@ -42,6 +51,19 @@ export const ProductDetails = () => {
 
   const [product, setProduct] = useState(initialProduct);
   const [isLoadingProduct, setIsLoadingProduct] = useState(!initialProduct);
+
+  // Dynamic same-category recommendations state
+  const [relatedProducts, setRelatedProducts] = useState(() => {
+    if (!initialProduct) return [];
+    const targetCat = normalizeCategory(initialProduct.category);
+    return PRODUCTS.filter(
+      (p) =>
+        p.id !== initialProduct.id &&
+        p.customId !== initialProduct.id &&
+        normalizeCategory(p.category) === targetCat
+    ).slice(0, 4);
+  });
+  const [isLoadingRelated, setIsLoadingRelated] = useState(false);
 
   // Fetch live product details from NestJS Backend
   useEffect(() => {
@@ -84,6 +106,92 @@ export const ProductDetails = () => {
       fetchLiveProduct();
     }
   }, [id]);
+
+  // Dynamically fetch live products belonging strictly to the SAME CATEGORY as the active creation
+  useEffect(() => {
+    if (!product) return;
+
+    let isMounted = true;
+    const fetchRelatedCategoryCreations = async () => {
+      setIsLoadingRelated(true);
+      const targetId = product.customId || product.id || product._id || id;
+      const targetCategory = product.category || '';
+      const normalizedCurrentCat = normalizeCategory(targetCategory);
+      const currentProdId = String(targetId);
+
+      // 1. Try dedicated backend related endpoint
+      try {
+        const res = await apiClient.get(`/products/${encodeURIComponent(targetId)}/related?limit=4`);
+        const items = res?.data || res?.items || (Array.isArray(res) ? res : []);
+        if (isMounted && Array.isArray(items) && items.length > 0) {
+          const formatted = items
+            .filter((p) => String(p.id || p.customId || p._id) !== currentProdId)
+            .map((p) => ({
+              ...p,
+              id: p.customId || p.id || p._id,
+              cardImage: p.cardImage || p.coverImage || p.images?.[0] || '/images/05_shop_product_card_1.jpg',
+            }));
+          if (formatted.length > 0) {
+            setRelatedProducts(formatted.slice(0, 4));
+            setIsLoadingRelated(false);
+            return;
+          }
+        }
+      } catch (err) {
+        // Fallback to category query
+      }
+
+      // 2. Query products by category query parameter from backend database
+      try {
+        if (targetCategory) {
+          const res = await apiClient.get(API_ENDPOINTS.PRODUCTS.BASE, {
+            params: { category: targetCategory, limit: 10 },
+          });
+          const items = res?.data?.items || res?.data || res?.items || [];
+          if (isMounted && Array.isArray(items) && items.length > 0) {
+            const sameCat = items
+              .filter((p) => String(p.id || p.customId || p._id) !== currentProdId)
+              .map((p) => ({
+                ...p,
+                id: p.customId || p.id || p._id,
+                cardImage: p.cardImage || p.coverImage || p.images?.[0] || '/images/05_shop_product_card_1.jpg',
+              }));
+            if (sameCat.length > 0) {
+              setRelatedProducts(sameCat.slice(0, 4));
+              setIsLoadingRelated(false);
+              return;
+            }
+          }
+        }
+      } catch (err) {
+        // Fallback to static PRODUCTS
+      }
+
+      // 3. Static fallback: strictly match the same category
+      if (isMounted) {
+        const matchingCategoryStatic = PRODUCTS.filter((p) => {
+          const isNotSelf = p.id !== product.id && p.id !== product.customId;
+          const isSameCategory = normalizeCategory(p.category) === normalizedCurrentCat;
+          return isNotSelf && isSameCategory;
+        }).slice(0, 4);
+
+        if (matchingCategoryStatic.length > 0) {
+          setRelatedProducts(matchingCategoryStatic);
+        } else {
+          setRelatedProducts(
+            PRODUCTS.filter((p) => p.id !== product.id && p.id !== product.customId).slice(0, 4)
+          );
+        }
+        setIsLoadingRelated(false);
+      }
+    };
+
+    fetchRelatedCategoryCreations();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [product?.id, product?.category, id]);
 
   const isUnstitched = Boolean(
     (typeof product?.category === 'string' && product.category.toLowerCase().includes('unstitched')) ||
@@ -377,10 +485,7 @@ export const ProductDetails = () => {
     );
   }
 
-  // Related products from same category or complementary
-  const relatedProducts = PRODUCTS.filter(
-    (p) => p.id !== product.id && (p.category === product.category || p.isBestSeller)
-  ).slice(0, 3);
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16 pb-28 lg:pb-16">
@@ -1172,21 +1277,32 @@ export const ProductDetails = () => {
         </div>
       </div>
 
-      {/* Related Products Showcase */}
+      {/* Related Products Showcase - Same Category Creations */}
       {relatedProducts.length > 0 && (
         <div className="space-y-6">
           <div className="flex items-center justify-between pb-3 border-b border-stone-200">
             <div>
               <span className="text-xs uppercase tracking-widest text-[#18523D] font-bold">You May Also Admire</span>
-              <h3 className="font-serif text-2xl font-bold text-stone-900">Complementary Creations</h3>
+              <h3 className="font-serif text-2xl font-bold text-stone-900">
+                {product.category
+                  ? `More in ${product.category.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}`
+                  : 'Complementary Creations'}
+              </h3>
             </div>
-            <Link to="/shop" className="text-xs font-bold uppercase tracking-wider text-[#18523D] hover:underline">
+            <Link
+              to={
+                product.category
+                  ? `/${String(product.category).toLowerCase().replace(/\s+/g, '-')}`
+                  : '/shop'
+              }
+              className="text-xs font-bold uppercase tracking-wider text-[#18523D] hover:underline"
+            >
               View All &rarr;
             </Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {relatedProducts.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id || p._id} product={p} />
             ))}
           </div>
         </div>
