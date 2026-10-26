@@ -13,8 +13,23 @@ export const QuickViewModal = ({ product, onClose }) => {
     (Array.isArray(product?.tags) && product.tags.some((t) => typeof t === 'string' && t.toLowerCase().includes('unstitched')))
   );
 
+  const isFreeSize = Boolean(
+    product?.isFreeSize === true ||
+    (Array.isArray(product?.sizes) && (
+      product.sizes.includes('Free Size') ||
+      product.sizes.includes('free size') ||
+      product.sizes.includes('FreeSize') ||
+      (product.sizes.length === 1 && String(product.sizes[0]).toLowerCase().includes('free'))
+    )) ||
+    isUnstitched
+  );
+
   const [selectedSize, setSelectedSize] = useState(() =>
-    isUnstitched ? 'Unstitched (Free Size)' : (product?.sizes?.[0] || 'Standard')
+    isUnstitched
+      ? 'Unstitched (Free Size)'
+      : isFreeSize
+      ? 'Free Size'
+      : (product?.sizes?.[0] || 'Standard')
   );
   const [quantity, setQuantity] = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -27,7 +42,7 @@ export const QuickViewModal = ({ product, onClose }) => {
   const isWishlisted = isInWishlist(product.id);
 
   const handleAdd = () => {
-    addToCart(product, isUnstitched ? 'Unstitched (Free Size)' : selectedSize, quantity);
+    addToCart(product, isFreeSize ? (isUnstitched ? 'Unstitched (Free Size)' : 'Free Size') : selectedSize, quantity);
     onClose();
   };
 
@@ -128,7 +143,7 @@ export const QuickViewModal = ({ product, onClose }) => {
             </p>
 
             {/* Size Selector */}
-            {isUnstitched ? (
+            {isFreeSize ? (
               <div className="mb-5 p-3 bg-[#FAF7F2] border border-[#D4AF37]/30 rounded-xl flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-7 h-7 rounded-lg bg-[#18523D]/10 flex items-center justify-center text-[#18523D] shrink-0">
@@ -136,10 +151,12 @@ export const QuickViewModal = ({ product, onClose }) => {
                   </div>
                   <div>
                     <div className="text-xs font-bold uppercase tracking-wider text-stone-900">
-                      Size: <span className="text-[#18523D]">Unstitched Fabric (Free Size)</span>
+                      Size: <span className="text-[#18523D]">{isUnstitched ? 'Unstitched Fabric (Free Size)' : 'Free Size Garment'}</span>
                     </div>
                     <p className="text-[10px] text-stone-500 mt-0.5">
-                      Bespoke Fabric Set &bull; Free size to tailor to your custom fit
+                      {isUnstitched
+                        ? 'Bespoke Fabric Set • Free size to tailor to your custom fit'
+                        : 'Ready to Wear Silhouette • Comfort fit across standard sizes'}
                     </p>
                   </div>
                 </div>

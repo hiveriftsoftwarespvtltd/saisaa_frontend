@@ -139,7 +139,10 @@ export const ProductCard = ({ product, onQuickView }) => {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              addToCart(product, product?.sizes?.[0] || 'Standard', 1);
+              const defaultSize = product?.isFreeSize || (Array.isArray(product?.sizes) && product.sizes.includes('Free Size'))
+                ? 'Free Size'
+                : (product?.sizes?.[0] || 'Standard');
+              addToCart(product, defaultSize, 1);
             }}
             className="w-full bg-[#E5C786] hover:bg-[#D4AF37] text-[#09231A] py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
           >

@@ -57,6 +57,7 @@ const normalizeProduct = (p) => {
     colorHex: p.colorHex || '#D4AF37',
     work: p.work || 'Handcrafted Karigari',
     care: p.care || 'Dry clean recommended.',
+    isFreeSize: Boolean(p.isFreeSize) || (Array.isArray(p.sizes) && p.sizes.includes('Free Size')),
     sizes: Array.isArray(p.sizes) && p.sizes.length > 0 ? p.sizes : ['XS', 'S', 'M', 'L', 'XL'],
     sizeVariants: Array.isArray(p.sizeVariants) ? p.sizeVariants : [],
     images:

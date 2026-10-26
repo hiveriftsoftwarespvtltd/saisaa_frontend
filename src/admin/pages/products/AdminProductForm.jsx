@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Save, Crown, X, Plus, Check, Tags, RefreshCw, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Save, Crown, X, Plus, Check, Tags, RefreshCw, Trash2, Scissors, Image as ImageIcon } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
 import { PageHeader } from '../../components/common/PageHeader';
 import { ProductMediaUpload } from '../../components/products/ProductMediaUpload';
@@ -47,6 +47,9 @@ export const AdminProductForm = () => {
           Array.isArray(existingProduct.features) && existingProduct.features.length > 0
             ? existingProduct.features
             : [''],
+        isFreeSize:
+          Boolean(existingProduct.isFreeSize) ||
+          (Array.isArray(existingProduct.sizes) && existingProduct.sizes.includes('Free Size')),
         sizes: existingProduct.sizes || ['M', 'L'],
         sizeVariants: existingProduct.sizeVariants || [],
         status: existingProduct.status || 'Active',
@@ -80,6 +83,7 @@ export const AdminProductForm = () => {
         'Includes matching trousers and artisan dupatta',
         'Soft breathable lining for all-day festive comfort',
       ],
+      isFreeSize: false,
       sizes: ['XS', 'S', 'M', 'L', 'XL'],
       sizeVariants: [],
       status: 'Active',
@@ -182,7 +186,7 @@ export const AdminProductForm = () => {
     setIsCustomSubCat(false);
   };
 
-  const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Standard'];
+  const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size', 'Standard'];
   const galleryPresets = [
     '/images/hero-model.jpg',
     '/images/blue-kurti.jpg',
@@ -200,6 +204,18 @@ export const AdminProductForm = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
+  };
+
+  const handleToggleFreeSize = (enable) => {
+    setFormData((prev) => ({
+      ...prev,
+      isFreeSize: enable,
+      sizes: enable ? ['Free Size'] : ['XS', 'S', 'M', 'L', 'XL'],
+      sizeVariants: enable ? [] : prev.sizeVariants,
+    }));
+    if (enable) {
+      setHasSizePricing(false);
+    }
   };
 
   const handleToggleSizePricing = (enable) => {
@@ -392,11 +408,14 @@ export const AdminProductForm = () => {
       discount: calculatedDiscount,
       isFeatured: Boolean(formData.isFeatured),
       isBestSeller: Boolean(formData.isBestSeller),
+      isFreeSize: Boolean(formData.isFreeSize),
       sizes:
-        hasSizePricing && cleanedVariants.length > 0
+        formData.isFreeSize
+          ? ['Free Size']
+          : hasSizePricing && cleanedVariants.length > 0
           ? cleanedVariants.map((v) => v.size)
           : formData.sizes,
-      sizeVariants: cleanedVariants,
+      sizeVariants: formData.isFreeSize ? [] : cleanedVariants,
     };
 
     if (isEditing) {
@@ -1005,31 +1024,70 @@ export const AdminProductForm = () => {
               </div>
             </div>
 
-            {/* Sizes Selection Chips */}
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-2">
-                Available Sizes
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {availableSizes.map((sz) => {
-                  const isChecked = formData.sizes.includes(sz);
-                  return (
-                    <button
-                      type="button"
-                      key={sz}
-                      onClick={() => toggleSize(sz)}
-                      className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                        isChecked
-                          ? 'bg-[#0A261C] text-[#F7E7BE] border-[#0A261C] shadow-xs'
-                          : 'bg-white text-stone-600 border-stone-200 hover:border-stone-300'
-                      }`}
-                    >
-                      {sz}
-                    </button>
-                  );
-                })}
+            {/* Free Size Option (No Size Chart) */}
+            <div className="p-4 bg-gradient-to-r from-amber-50/60 to-stone-50 rounded-xl border border-amber-200/80 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0A261C] text-[#F7E7BE] px-2 py-0.5 rounded">
+                      Free Size Option
+                    </span>
+                    <h4 className="text-xs font-bold text-stone-900">
+                      Show as Free Size (Hide Size Chart)
+                    </h4>
+                  </div>
+                  <p className="text-[11px] text-stone-600">
+                    Enable this option for any Stitched Suit to mark it as <strong>Free Size</strong>. On the storefront, the <strong>Size Chart / Guide will be hidden</strong>.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer shrink-0 ml-3">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(formData.isFreeSize)}
+                    onChange={(e) => handleToggleFreeSize(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0A261C]"></div>
+                </label>
               </div>
+
+              {formData.isFreeSize && (
+                <div className="pt-2 border-t border-amber-200/50 flex items-center justify-between text-xs text-[#0A261C]">
+                  <span className="font-medium text-[11px]">Storefront Display:</span>
+                  <span className="font-bold bg-[#18523D]/10 text-[#18523D] px-2.5 py-0.5 rounded-full text-[11px]">
+                    ✓ Free Size (Size Chart Hidden)
+                  </span>
+                </div>
+              )}
             </div>
+
+            {/* Sizes Selection Chips */}
+            {!formData.isFreeSize && (
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-2">
+                  Available Sizes
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {availableSizes.map((sz) => {
+                    const isChecked = formData.sizes.includes(sz);
+                    return (
+                      <button
+                        type="button"
+                        key={sz}
+                        onClick={() => toggleSize(sz)}
+                        className={`px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                          isChecked
+                            ? 'bg-[#0A261C] text-[#F7E7BE] border-[#0A261C] shadow-xs'
+                            : 'bg-white text-stone-600 border-stone-200 hover:border-stone-300'
+                        }`}
+                      >
+                        {sz}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

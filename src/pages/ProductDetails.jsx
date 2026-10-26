@@ -206,23 +206,40 @@ export const ProductDetails = () => {
     (Array.isArray(product?.tags) && product.tags.some((t) => typeof t === 'string' && t.toLowerCase().includes('unstitched')))
   );
 
+  const isFreeSize = Boolean(
+    product?.isFreeSize === true ||
+    (Array.isArray(product?.sizes) && (
+      product.sizes.includes('Free Size') ||
+      product.sizes.includes('free size') ||
+      product.sizes.includes('FreeSize') ||
+      (product.sizes.length === 1 && String(product.sizes[0]).toLowerCase().includes('free'))
+    )) ||
+    isUnstitched
+  );
+
   const [activeImage, setActiveImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState(() =>
-    isUnstitched ? 'Unstitched (Free Size)' : ((product?.sizes && product.sizes[0]) || 'Standard')
+    isUnstitched
+      ? 'Unstitched (Free Size)'
+      : isFreeSize
+      ? 'Free Size'
+      : ((product?.sizes && product.sizes[0]) || 'Standard')
   );
   const [quantity, setQuantity] = useState(1);
   const [pincode, setPincode] = useState('');
 
-  // Synchronize size when product loads or switches to/from unstitched
+  // Synchronize size when product loads or switches to/from free size/unstitched
   useEffect(() => {
     if (isUnstitched) {
       setSelectedSize('Unstitched (Free Size)');
+    } else if (isFreeSize) {
+      setSelectedSize('Free Size');
     } else if (Array.isArray(product?.sizes) && product.sizes.length > 0) {
-      if (!product.sizes.includes(selectedSize) || selectedSize === 'Unstitched (Free Size)') {
+      if (!product.sizes.includes(selectedSize) || selectedSize === 'Unstitched (Free Size)' || selectedSize === 'Free Size') {
         setSelectedSize(product.sizes[0]);
       }
     }
-  }, [product?.id, product?.category, product?.subCategory, product?.name, product?.slug, isUnstitched]);
+  }, [product?.id, product?.category, product?.subCategory, product?.name, product?.slug, product?.isFreeSize, isUnstitched, isFreeSize]);
   const [pincodeStatus, setPincodeStatus] = useState(null);
   const [activeTab, setActiveTab] = useState('details');
 
@@ -653,18 +670,20 @@ export const ProductDetails = () => {
           </p>
 
           {/* Size Selection */}
-          {isUnstitched ? (
-            <div className="p-3.5 bg-[#FAF7F2] border border-[#D4AF37]/35 rounded-xl flex items-center justify-between">
+          {isFreeSize ? (
+            <div className="p-3.5 bg-[#FAF7F2] border border-[#D4AF37]/35 rounded-xl flex items-center justify-between shadow-2xs">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-[#18523D]/10 flex items-center justify-center text-[#18523D] shrink-0">
                   <Scissors className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="text-xs font-bold uppercase tracking-wider text-stone-900">
-                    Size: <span className="text-[#18523D]">Unstitched Fabric (Free Size)</span>
+                    Size: <span className="text-[#18523D]">{isUnstitched ? 'Unstitched Fabric (Free Size)' : 'Free Size Garment'}</span>
                   </div>
                   <p className="text-[11px] text-stone-500 mt-0.5">
-                    Customizable Fabric Set &bull; Free size to tailor to your bespoke fit
+                    {isUnstitched
+                      ? 'Customizable Fabric Set • Free size to tailor to your bespoke fit'
+                      : 'Comfort Fit Silhouette • Designed for an effortless, relaxed fit across standard sizes'}
                   </p>
                 </div>
               </div>
