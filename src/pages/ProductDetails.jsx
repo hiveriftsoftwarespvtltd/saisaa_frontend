@@ -27,12 +27,14 @@ import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { ProductCard } from '../components/ProductCard';
-// Helper for robust case/hyphen-insensitive category matching
+import { apiClient, API_ENDPOINTS } from '../config';
+
+// Helper for robust category normalization
 const normalizeCategory = (cat) => {
   if (!cat || typeof cat !== 'string') return '';
   const c = cat.toLowerCase().replace(/[-_\s]+/g, '');
   if (c.includes('unstitched')) return 'unstitched-suits';
-  if (c.includes('stitched') || c.includes('suit')) return 'suits';
+  if (c.includes('stitched') || c.includes('suit')) return 'stitched-suits';
   if (c.includes('saree')) return 'sarees';
   if (c.includes('kurti')) return 'kurtis';
   return cat.toLowerCase().trim();
@@ -52,9 +54,9 @@ export const ProductDetails = () => {
   const [product, setProduct] = useState(initialProduct);
   const [isLoadingProduct, setIsLoadingProduct] = useState(!initialProduct);
 
-  // Dynamic same-category recommendations state
+  // Dynamic same-category recommendations state (loads from backend API)
   const [relatedProducts, setRelatedProducts] = useState(() => {
-    if (!initialProduct) return [];
+    if (!initialProduct?.category) return [];
     const targetCat = normalizeCategory(initialProduct.category);
     return PRODUCTS.filter(
       (p) =>
@@ -122,8 +124,15 @@ export const ProductDetails = () => {
       // 1. Try dedicated backend related endpoint
       try {
         const res = await apiClient.get(`/products/${encodeURIComponent(targetId)}/related?limit=4`);
-        const items = res?.data || res?.items || (Array.isArray(res) ? res : []);
-        if (isMounted && Array.isArray(items) && items.length > 0) {
+        const items = Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res)
+          ? res
+          : Array.isArray(res?.items)
+          ? res.items
+          : [];
+
+        if (isMounted && items.length > 0) {
           const formatted = items
             .filter((p) => String(p.id || p.customId || p._id) !== currentProdId)
             .map((p) => ({
@@ -138,7 +147,7 @@ export const ProductDetails = () => {
           }
         }
       } catch (err) {
-        // Fallback to category query
+        console.warn('Backend related endpoint call failed:', err?.message || err);
       }
 
       // 2. Query products by category query parameter from backend database
@@ -147,8 +156,9 @@ export const ProductDetails = () => {
           const res = await apiClient.get(API_ENDPOINTS.PRODUCTS.BASE, {
             params: { category: targetCategory, limit: 10 },
           });
-          const items = res?.data?.items || res?.data || res?.items || [];
-          if (isMounted && Array.isArray(items) && items.length > 0) {
+          const rawItems = res?.data?.items || res?.data || res?.items || [];
+          const items = Array.isArray(rawItems) ? rawItems : [];
+          if (isMounted && items.length > 0) {
             const sameCat = items
               .filter((p) => String(p.id || p.customId || p._id) !== currentProdId)
               .map((p) => ({
@@ -164,10 +174,10 @@ export const ProductDetails = () => {
           }
         }
       } catch (err) {
-        // Fallback to static PRODUCTS
+        console.warn('Backend category search call failed:', err?.message || err);
       }
 
-      // 3. Static fallback: strictly match the same category
+      // 3. Static fallback: strictly match the exact same category only
       if (isMounted) {
         const matchingCategoryStatic = PRODUCTS.filter((p) => {
           const isNotSelf = p.id !== product.id && p.id !== product.customId;
@@ -175,13 +185,7 @@ export const ProductDetails = () => {
           return isNotSelf && isSameCategory;
         }).slice(0, 4);
 
-        if (matchingCategoryStatic.length > 0) {
-          setRelatedProducts(matchingCategoryStatic);
-        } else {
-          setRelatedProducts(
-            PRODUCTS.filter((p) => p.id !== product.id && p.id !== product.customId).slice(0, 4)
-          );
-        }
+        setRelatedProducts(matchingCategoryStatic);
         setIsLoadingRelated(false);
       }
     };
