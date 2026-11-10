@@ -1,26 +1,94 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Heart, Search, Menu, X, User } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import {
+  ShoppingBag,
+  Heart,
+  Search,
+  Menu,
+  X,
+  User,
+  ChevronDown,
+  ArrowUpRight,
+} from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
 import { apiClient, API_ENDPOINTS } from '../config';
 
+const DEFAULT_HEADER_CATEGORIES = [
+  {
+    name: 'Stitched Suits',
+    slug: 'stitched-suits',
+    subCategories: ['3 pcs set', '2 pcs set', 'long kurtis', 'Short kurtis'],
+  },
+  {
+    name: 'Unstitched Suits',
+    slug: 'unstitched-suits',
+    subCategories: [
+      'Jamdani',
+      'Banarasi silk',
+      'Kanjivaram silk',
+      'Pure cotton',
+      'Muslin silk',
+      'Linen fabric',
+    ],
+  },
+  {
+    name: 'Sarees',
+    slug: 'sarees',
+    subCategories: [
+      'Cotton sarees',
+      'Chiffon sarees',
+      'Silk sarees',
+      'Kota sarees',
+    ],
+  },
+];
+
+const normalizeSubCategories = (rawSubs) => {
+  if (!Array.isArray(rawSubs)) return [];
+  const seen = new Set();
+  const result = [];
+  for (const item of rawSubs) {
+    if (typeof item === 'string') {
+      const name = item.trim();
+      if (name && !seen.has(name.toLowerCase())) {
+        seen.add(name.toLowerCase());
+        result.push({ name });
+      }
+    } else if (item && typeof item === 'object') {
+      const name = (item.name || '').trim();
+      const isInactive = (item.status || 'Active').toLowerCase() === 'inactive';
+      if (name && !isInactive && !seen.has(name.toLowerCase())) {
+        seen.add(name.toLowerCase());
+        result.push({ name, image: item.image || '' });
+      }
+    }
+  }
+  return result;
+};
+
 export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [categories, setCategories] = useState([
-    { name: 'Stitched Suits', slug: 'stitched-suits' },
-    { name: 'Unstitched Suits', slug: 'unstitched-suits' },
-    { name: 'Sarees', slug: 'sarees' },
-  ]);
+  const [openDropdownPath, setOpenDropdownPath] = useState(null);
+  const [mobileExpandedPath, setMobileExpandedPath] = useState(null);
+  const [categories, setCategories] = useState(DEFAULT_HEADER_CATEGORIES);
+  const closeTimerRef = useRef(null);
+
   const { totalItemCount } = useCart();
   const { wishlistCount } = useWishlist();
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Fetch live categories from backend API
+  const activeSubCategoryParam = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return (params.get('subCategory') || '').trim().toLowerCase();
+  }, [location.search]);
+
+  // Fetch live categories & subcategories from backend API
   useEffect(() => {
     let isMounted = true;
     const fetchHeaderCategories = async () => {
@@ -46,6 +114,39 @@ export const Navbar = () => {
     };
   }, []);
 
+  // Close open dropdown on Escape key or cleanup hover timer
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setOpenDropdownPath(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleOpenDropdown = (path) => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    setOpenDropdownPath(path);
+  };
+
+  const handleScheduleCloseDropdown = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+    }
+    closeTimerRef.current = setTimeout(() => {
+      setOpenDropdownPath(null);
+    }, 150);
+  };
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -56,16 +157,20 @@ export const Navbar = () => {
   };
 
   const navLinks = useMemo(() => {
-    const categoryLinks = categories.map((cat) => ({
-      label: cat.name,
-      path: `/${cat.slug || cat.name.toLowerCase().replace(/\s+/g, '-')}`,
-    }));
+    const categoryLinks = categories.map((cat) => {
+      const slug = cat.slug || cat.name.toLowerCase().replace(/\s+/g, '-');
+      return {
+        label: cat.name,
+        path: `/${slug}`,
+        subCategories: normalizeSubCategories(cat.subCategories),
+      };
+    });
 
     return [
-      { label: 'Home', path: '/' },
+      { label: 'Home', path: '/', subCategories: [] },
       ...categoryLinks,
-      { label: 'About', path: '/about' },
-      { label: 'Contact', path: '/contact' },
+      { label: 'About', path: '/about', subCategories: [] },
+      { label: 'Contact', path: '/contact', subCategories: [] },
     ];
   }, [categories]);
 
@@ -117,22 +222,114 @@ export const Navbar = () => {
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
+          {/* Desktop Navigation Links with Luxury Sub-Category Dropdowns */}
           <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.path}
-                to={link.path}
-                className={({ isActive }) =>
-                  `relative text-xs xl:text-sm tracking-wider uppercase transition-all duration-200 py-1 ${isActive
-                    ? 'text-[#F7E7BE] font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#D4AF37]'
-                    : 'text-stone-300 hover:text-[#F7E7BE]'
-                  }`
-                }
-              >
-                {link.label}
-              </NavLink>
-            ))}
+            {navLinks.map((link) => {
+              const hasSubs = link.subCategories && link.subCategories.length > 0;
+              const isOpen = openDropdownPath === link.path;
+
+              return (
+                <div
+                  key={link.path}
+                  className="relative py-2"
+                  onMouseEnter={() => hasSubs && handleOpenDropdown(link.path)}
+                  onMouseLeave={() => hasSubs && handleScheduleCloseDropdown()}
+                >
+                  <NavLink
+                    to={link.path}
+                    onClick={() => setOpenDropdownPath(null)}
+                    onFocus={() => hasSubs && handleOpenDropdown(link.path)}
+                    aria-expanded={hasSubs ? isOpen : undefined}
+                    aria-haspopup={hasSubs ? 'true' : undefined}
+                    className={({ isActive }) =>
+                      `relative inline-flex items-center gap-1.5 text-xs xl:text-sm tracking-wider uppercase transition-all duration-200 py-1 ${
+                        isActive
+                          ? 'text-[#F7E7BE] font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#D4AF37]'
+                          : 'text-stone-300 hover:text-[#F7E7BE]'
+                      }`
+                    }
+                  >
+                    <span>{link.label}</span>
+                    {hasSubs && (
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                          isOpen ? 'rotate-180 text-[#D4AF37]' : 'text-[#D4AF37]/80'
+                        }`}
+                      />
+                    )}
+                  </NavLink>
+
+                  {/* Sub-Categories Dropdown Panel */}
+                  {hasSubs && isOpen && (
+                    <div
+                      className={`absolute left-1/2 -translate-x-1/2 top-full pt-3 z-50 ${
+                        link.subCategories.length >= 4 ? 'w-[410px]' : 'w-64'
+                      }`}
+                      role="menu"
+                      aria-label={`${link.label} subcategories`}
+                    >
+                      <div className="bg-[#071F17]/98 backdrop-blur-md border border-[#D4AF37]/35 border-t-2 border-t-[#D4AF37] rounded-2xl shadow-[0_24px_60px_rgba(0,0,0,0.55)] overflow-hidden">
+                        {/* Dropdown Header */}
+                        <div className="px-5 py-3 bg-[#0A291E]/90 border-b border-[#D4AF37]/20 flex items-center justify-between">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#D4AF37]">
+                            Explore {link.label}
+                          </span>
+                          <Link
+                            to={link.path}
+                            onClick={() => setOpenDropdownPath(null)}
+                            className="inline-flex items-center gap-1 text-[11px] font-medium text-[#F7E7BE] hover:text-white transition-colors"
+                          >
+                            <span>View All</span>
+                            <ArrowUpRight className="w-3 h-3 text-[#D4AF37]" />
+                          </Link>
+                        </div>
+
+                        {/* Sub-Categories Grid */}
+                        <div
+                          className={`p-3 grid ${
+                            link.subCategories.length >= 4
+                              ? 'grid-cols-2 gap-1.5'
+                              : 'grid-cols-1 gap-1'
+                          }`}
+                        >
+                          {link.subCategories.map((sub) => {
+                            const isSubActive =
+                              location.pathname === link.path &&
+                              activeSubCategoryParam === sub.name.toLowerCase();
+
+                            return (
+                              <Link
+                                key={sub.name}
+                                to={`${link.path}?subCategory=${encodeURIComponent(sub.name)}`}
+                                role="menuitem"
+                                onClick={() => setOpenDropdownPath(null)}
+                                className={`group/sub flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all duration-150 ${
+                                  isSubActive
+                                    ? 'bg-[#D4AF37]/15 text-[#F7E7BE] font-semibold border border-[#D4AF37]/40'
+                                    : 'text-stone-200 hover:bg-white/5 hover:text-[#F7E7BE] border border-transparent'
+                                }`}
+                              >
+                                <span className="flex items-center gap-2.5 truncate">
+                                  <span
+                                    className={`w-1.5 h-1.5 rotate-45 shrink-0 transition-colors ${
+                                      isSubActive
+                                        ? 'bg-[#D4AF37]'
+                                        : 'bg-[#D4AF37]/45 group-hover/sub:bg-[#D4AF37]'
+                                    }`}
+                                  />
+                                  <span className="capitalize truncate">{sub.name}</span>
+                                </span>
+                                <ArrowUpRight className="w-3.5 h-3.5 text-[#D4AF37] opacity-0 -translate-x-1 group-hover/sub:opacity-100 group-hover/sub:translate-x-0 transition-all shrink-0" />
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </nav>
 
           {/* Utility Action Icons: Search, Wishlist, Bag */}
@@ -226,20 +423,93 @@ export const Navbar = () => {
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#071F17] border-b border-[#D4AF37]/25 px-6 py-6 space-y-4">
-          <div className="flex flex-col space-y-3">
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.path}
-                to={link.path}
-                onClick={() => setMobileMenuOpen(false)}
-                className={({ isActive }) =>
-                  `text-base uppercase tracking-widest py-2.5 border-b border-white/5 transition-colors ${isActive ? 'text-[#F7E7BE] font-bold' : 'text-stone-300 hover:text-[#F7E7BE]'
-                  }`
-                }
-              >
-                {link.label}
-              </NavLink>
-            ))}
+          <div className="flex flex-col space-y-2">
+            {navLinks.map((link) => {
+              const hasSubs = link.subCategories && link.subCategories.length > 0;
+              const isExpanded = mobileExpandedPath === link.path;
+
+              return (
+                <div key={link.path} className="border-b border-white/5">
+                  <div className="flex items-center justify-between">
+                    <NavLink
+                      to={link.path}
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setMobileExpandedPath(null);
+                      }}
+                      className={({ isActive }) =>
+                        `flex-1 text-base uppercase tracking-widest py-2.5 transition-colors ${
+                          isActive
+                            ? 'text-[#F7E7BE] font-bold'
+                            : 'text-stone-300 hover:text-[#F7E7BE]'
+                        }`
+                      }
+                    >
+                      {link.label}
+                    </NavLink>
+
+                    {hasSubs && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMobileExpandedPath((prev) =>
+                            prev === link.path ? null : link.path
+                          )
+                        }
+                        aria-expanded={isExpanded}
+                        aria-label={`Toggle ${link.label} subcategories`}
+                        className="p-2 text-[#D4AF37] hover:text-[#F7E7BE] transition-colors"
+                      >
+                        <ChevronDown
+                          className={`w-4 h-4 transition-transform duration-200 ${
+                            isExpanded ? 'rotate-180' : ''
+                          }`}
+                        />
+                      </button>
+                    )}
+                  </div>
+
+                  {hasSubs && isExpanded && (
+                    <div className="pl-4 pb-3 pt-1 ml-1 border-l border-[#D4AF37]/30 flex flex-col space-y-1.5">
+                      <Link
+                        to={link.path}
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          setMobileExpandedPath(null);
+                        }}
+                        className="text-xs uppercase tracking-wider text-[#D4AF37] font-semibold py-1.5"
+                      >
+                        All {link.label} &rarr;
+                      </Link>
+                      {link.subCategories.map((sub) => {
+                        const isSubActive =
+                          location.pathname === link.path &&
+                          activeSubCategoryParam === sub.name.toLowerCase();
+
+                        return (
+                          <Link
+                            key={sub.name}
+                            to={`${link.path}?subCategory=${encodeURIComponent(sub.name)}`}
+                            onClick={() => {
+                              setMobileMenuOpen(false);
+                              setMobileExpandedPath(null);
+                            }}
+                            className={`flex items-center gap-2 text-sm capitalize py-1.5 transition-colors ${
+                              isSubActive
+                                ? 'text-[#F7E7BE] font-semibold'
+                                : 'text-stone-300 hover:text-[#F7E7BE]'
+                            }`}
+                          >
+                            <span className="w-1.5 h-1.5 rotate-45 bg-[#D4AF37]/70 shrink-0" />
+                            <span>{sub.name}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             {isAuthenticated ? (
               <>
                 <NavLink

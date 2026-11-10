@@ -354,12 +354,8 @@ export const Shop = ({ forcedCategory = null }) => {
     } else {
       setSelectedCategory('all');
     }
-    if (searchParams.get('subCategory')) {
-      setSelectedSubCategory(searchParams.get('subCategory'));
-    }
-    if (searchParams.get('search')) {
-      setSearchQuery(searchParams.get('search'));
-    }
+    setSelectedSubCategory(searchParams.get('subCategory') || 'all');
+    setSearchQuery(searchParams.get('search') || '');
   }, [forcedCategory, categorySlug, searchParams]);
 
   const fabrics = ['all', 'Velvet', 'Silk', 'Georgette', 'Chanderi', 'Organza', 'Cotton'];
