@@ -285,28 +285,43 @@ export const Home = () => {
                 : 'sm:grid-cols-2 lg:grid-cols-4';
 
             return (
-              <div className="space-y-6 lg:space-y-7">
-                {leadFeatured && (
-                  <ProductCard
-                    key={leadFeatured.id || leadFeatured._id}
-                    product={leadFeatured}
-                    variant="atelier-spotlight"
-                    onQuickView={(p) => setQuickViewProduct(p)}
-                  />
-                )}
-                {gridFeatured.length > 0 && (
-                  <div className={`grid grid-cols-1 ${gridColsClass} gap-6 lg:gap-7`}>
-                    {gridFeatured.map((product) => (
-                      <ProductCard
-                        key={product.id || product._id}
-                        product={product}
-                        variant="atelier"
-                        onQuickView={(p) => setQuickViewProduct(p)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
+              <>
+                {/* Mobile & Tablet (< lg): Uniform normal cards for every item */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 lg:hidden">
+                  {featuredProducts.map((product) => (
+                    <ProductCard
+                      key={`mob-feat-${product.id || product._id}`}
+                      product={product}
+                      variant="atelier"
+                      onQuickView={(p) => setQuickViewProduct(p)}
+                    />
+                  ))}
+                </div>
+
+                {/* Desktop (lg+): Editorial Spotlight + Symmetric Row */}
+                <div className="hidden lg:block space-y-7">
+                  {leadFeatured && (
+                    <ProductCard
+                      key={leadFeatured.id || leadFeatured._id}
+                      product={leadFeatured}
+                      variant="atelier-spotlight"
+                      onQuickView={(p) => setQuickViewProduct(p)}
+                    />
+                  )}
+                  {gridFeatured.length > 0 && (
+                    <div className={`grid grid-cols-1 ${gridColsClass} gap-7`}>
+                      {gridFeatured.map((product) => (
+                        <ProductCard
+                          key={product.id || product._id}
+                          product={product}
+                          variant="atelier"
+                          onQuickView={(p) => setQuickViewProduct(p)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
             );
           })()
         ) : (
@@ -382,30 +397,46 @@ export const Home = () => {
                   : 'sm:grid-cols-2 lg:grid-cols-4';
 
               return (
-                <div className="space-y-6 lg:space-y-7">
-                  {leadRoyal && (
-                    <ProductCard
-                      key={leadRoyal.id || leadRoyal._id}
-                      product={leadRoyal}
-                      variant="royal-spotlight"
-                      rank={1}
-                      onQuickView={(p) => setQuickViewProduct(p)}
-                    />
-                  )}
-                  {gridRoyal.length > 0 && (
-                    <div className={`grid grid-cols-1 ${gridColsClass} gap-6 lg:gap-7`}>
-                      {gridRoyal.map((product, idx) => (
-                        <ProductCard
-                          key={product.id || product._id}
-                          product={product}
-                          variant="royal"
-                          rank={rankOffset + idx}
-                          onQuickView={(p) => setQuickViewProduct(p)}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <>
+                  {/* Mobile & Tablet (< lg): Uniform normal ranked cards for every item */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 lg:hidden">
+                    {bestSellerProducts.map((product, idx) => (
+                      <ProductCard
+                        key={`mob-royal-${product.id || product._id}`}
+                        product={product}
+                        variant="royal"
+                        rank={idx + 1}
+                        onQuickView={(p) => setQuickViewProduct(p)}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Desktop (lg+): Royal Spotlight + Symmetric Row */}
+                  <div className="hidden lg:block space-y-7">
+                    {leadRoyal && (
+                      <ProductCard
+                        key={leadRoyal.id || leadRoyal._id}
+                        product={leadRoyal}
+                        variant="royal-spotlight"
+                        rank={1}
+                        onQuickView={(p) => setQuickViewProduct(p)}
+                      />
+                    )}
+                    {gridRoyal.length > 0 && (
+                      <div className={`grid grid-cols-1 ${gridColsClass} gap-7`}>
+                        {gridRoyal.map((product, idx) => (
+                          <ProductCard
+                            key={product.id || product._id}
+                            product={product}
+                            variant="royal"
+                            rank={rankOffset + idx}
+                            onQuickView={(p) => setQuickViewProduct(p)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
               );
             })()
           ) : (
