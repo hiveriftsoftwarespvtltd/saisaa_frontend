@@ -1,0 +1,376 @@
+/* ========================================================================== */
+/* SAISAA HERO SLIDESHOW & LINEAR MARQUEE (Manmayi Animation + Saisaa Theme)  */
+/* ========================================================================== */
+
+.saisaa-slideshow {
+  position: relative;
+  width: 100%;
+  height: 750px;
+  overflow: hidden;
+  background-color: #09231A;
+}
+
+@media (max-width: 1199px) {
+  .saisaa-slideshow {
+    height: 650px;
+  }
+}
+
+@media (max-width: 991px) {
+  .saisaa-slideshow {
+    height: 550px;
+  }
+}
+
+@media (max-width: 767px) {
+  .saisaa-slideshow {
+    height: 290px;
+  }
+}
+
+.saisaa-slideshow .swiper,
+.saisaa-slideshow .swiper-wrapper,
+.saisaa-slideshow .swiper-slide {
+  width: 100%;
+  height: 100%;
+}
+
+.saisaa-slideshow .swiper-slide {
+  position: relative;
+  overflow: hidden;
+}
+
+.saisaa-slideshow .saisaa-slide-media {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.saisaa-slideshow .saisaa-slide-media img {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.saisaa-slideshow .slider-content {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.saisaa-slideshow .slider-content a,
+.saisaa-slideshow .slider-content button {
+  pointer-events: auto;
+}
+
+/* Signature Manmayi fadeInLeft slide text/CTA animation */
+.saisaa-slideshow .slide-animation > div {
+  overflow: visible !important;
+}
+
+.saisaa-slideshow .slide-animation > div > * {
+  opacity: 0;
+}
+
+.saisaa-slideshow .swiper-slide-active .slide-animation.fadeInLeft > div > * {
+  animation-name: saisaaFadeInLeft;
+  animation-duration: 1s;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.42, 0.0, 1.0, 1.0);
+}
+
+.saisaa-slideshow .swiper-slide-active .slide-animation > :first-child > * {
+  animation-delay: 0.2s;
+}
+
+.saisaa-slideshow .swiper-slide-active .slide-animation > :nth-child(2) > * {
+  animation-delay: 0.4s;
+}
+
+.saisaa-slideshow .swiper-slide-active .slide-animation > :nth-child(3) > * {
+  animation-delay: 0.6s;
+}
+
+.saisaa-slideshow .swiper-slide-active .slide-animation > :nth-child(4) > * {
+  animation-delay: 0.8s;
+}
+
+@keyframes saisaaFadeInLeft {
+  from {
+    opacity: 0;
+    transform: translate3d(-45px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Match Manmayi responsive parallax guard below desktop breakpoint */
+@media (max-width: 1199px) {
+  .saisaa-slideshow [data-swiper-parallax] {
+    transform: none !important;
+  }
+}
+
+/* Circular Navigation Arrows — Saisaa Emerald & Royal Gold Theme */
+.saisaa-slideshow .saisaa-nav-btn {
+  position: absolute;
+  top: 50%;
+  margin-top: -30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 100%;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  background-color: rgba(9, 35, 26, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #F7E7BE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.saisaa-slideshow .saisaa-nav-btn-prev {
+  left: 60px;
+}
+
+.saisaa-slideshow .saisaa-nav-btn-next {
+  right: 60px;
+}
+
+.saisaa-slideshow .saisaa-nav-btn:hover {
+  background-color: #09231A;
+  border-color: #D4AF37;
+  color: #E5C786;
+  box-shadow: 0 0 22px rgba(212, 175, 55, 0.35);
+  transform: scale(1.04);
+}
+
+@media (max-width: 1850px) {
+  .saisaa-slideshow .saisaa-nav-btn {
+    width: 50px;
+    height: 50px;
+    margin-top: -25px;
+  }
+  .saisaa-slideshow .saisaa-nav-btn-prev {
+    left: 40px;
+  }
+  .saisaa-slideshow .saisaa-nav-btn-next {
+    right: 40px;
+  }
+}
+
+@media (max-width: 991px) {
+  .saisaa-slideshow .saisaa-nav-btn {
+    width: 44px;
+    height: 44px;
+    margin-top: -22px;
+  }
+  .saisaa-slideshow .saisaa-nav-btn-prev {
+    left: 15px;
+  }
+  .saisaa-slideshow .saisaa-nav-btn-next {
+    right: 15px;
+  }
+}
+
+@media (max-width: 767px) {
+  .saisaa-slideshow .saisaa-nav-btn {
+    width: 36px;
+    height: 36px;
+    margin-top: -18px;
+  }
+  .saisaa-slideshow .saisaa-nav-btn-prev {
+    left: 10px;
+  }
+  .saisaa-slideshow .saisaa-nav-btn-next {
+    right: 10px;
+  }
+}
+
+/* Halo Pagination Dots — Exact Manmayi 23px Outer Ring in Saisaa Royal Gold */
+.saisaa-slideshow .swiper-pagination {
+  bottom: 28px !important;
+  left: 50% !important;
+  transform: translateX(-50%);
+  width: auto !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background-color: rgba(9, 35, 26, 0.28);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+@media (max-width: 991px) {
+  .saisaa-slideshow .swiper-pagination {
+    bottom: 20px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .saisaa-slideshow .swiper-pagination {
+    bottom: 12px !important;
+    padding: 4px 10px;
+  }
+}
+
+.saisaa-slideshow .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  margin: 0 12px !important;
+  padding: 0;
+  border-radius: 50%;
+  background-color: rgba(247, 231, 190, 0.55);
+  opacity: 1;
+  position: relative;
+  transition: 0.2s ease-in-out;
+  box-shadow: none;
+  outline: 0;
+}
+
+@media (max-width: 767px) {
+  .saisaa-slideshow .swiper-pagination-bullet {
+    width: 7px;
+    height: 7px;
+    margin: 0 8px !important;
+  }
+}
+
+.saisaa-slideshow .swiper-pagination-bullet::before {
+  content: '';
+  width: 23px;
+  height: 23px;
+  background: transparent;
+  display: block;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: 1px solid rgba(212, 175, 55, 0.85);
+  transform: translate(-50%, -50%);
+  transition: 0.3s;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.saisaa-slideshow .swiper-pagination-bullet.swiper-pagination-bullet-active,
+.saisaa-slideshow .swiper-pagination-bullet:hover {
+  background-color: #D4AF37;
+  opacity: 1;
+}
+
+.saisaa-slideshow .swiper-pagination-bullet.swiper-pagination-bullet-active::before,
+.saisaa-slideshow .swiper-pagination-bullet:hover::before {
+  opacity: 1;
+}
+
+/* Saisaa CTA Button matching Manmayi .btn-base-color -> invert hover */
+.saisaa-hero-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background-color: #09231A;
+  border: 1px solid #D4AF37;
+  color: #F7E7BE;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 15px 38px;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 28px rgba(9, 35, 26, 0.38);
+  text-decoration: none;
+}
+
+.saisaa-hero-btn:hover {
+  background-color: rgba(9, 35, 26, 0.45);
+  backdrop-filter: blur(8px);
+  border-color: #F7E7BE;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px rgba(212, 175, 55, 0.3);
+}
+
+@media (max-width: 767px) {
+  .saisaa-hero-btn {
+    padding: 9px 22px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+  }
+}
+
+/* ========================================================================== */
+/* LINEAR MARQUEE TICKER (Exact Manmayi continuous transition timing)         */
+/* ========================================================================== */
+
+.saisaa-marquee {
+  background-color: #FAF7F2;
+  border-top: 1px solid rgba(212, 175, 55, 0.25);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+  padding: 20px 0;
+  overflow: hidden;
+}
+
+.saisaa-marquee .swiper-wrapper {
+  -webkit-transition-timing-function: linear !important;
+  transition-timing-function: linear !important;
+  position: relative;
+  align-items: center;
+}
+
+.saisaa-marquee .swiper-slide {
+  width: auto !important;
+  flex-shrink: 0;
+}
+
+.saisaa-marquee .marquee-text {
+  display: inline-flex;
+  align-items: center;
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 600;
+  color: #09231A;
+  letter-spacing: 0.03em;
+  margin: 6px 0;
+  white-space: nowrap;
+}
+
+.saisaa-marquee .marquee-text .dot-border {
+  height: 10px;
+  width: 10px;
+  border-radius: 100%;
+  border: 1.5px solid #D4AF37;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  margin: 0 42px 0 26px;
+}
+
+@media (max-width: 991px) {
+  .saisaa-marquee {
+    padding: 14px 0;
+  }
+  .saisaa-marquee .marquee-text {
+    font-size: 15px;
+    line-height: 24px;
+  }
+  .saisaa-marquee .marquee-text .dot-border {
+    margin: 0 26px 0 18px;
+  }
+}

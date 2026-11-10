@@ -19,6 +19,7 @@ import {
 import { PRODUCTS } from '../data/products';
 import { ProductCard } from '../components/ProductCard';
 import { ProductCarousel } from '../components/ProductCarousel';
+import { HeroSlideshow } from '../components/HeroSlideshow';
 import { QuickViewModal } from '../components/QuickViewModal';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
@@ -154,155 +155,9 @@ export const Home = () => {
     <div className="bg-[#FAF7F2] text-[#1E2922] overflow-hidden">
 
       {/* ========================================================= */}
-      {/* 1. HERO SECTION (MATCHING SCREENSHOT EXACTLY)             */}
+      {/* 1. HERO SLIDESHOW + MARQUEE TICKER (SAISAA EDITION)       */}
       {/* ========================================================= */}
-      <section className="relative bg-[#0A291E] text-white overflow-hidden border-b border-[#D4AF37]/25">
-        {/* Botanical climbing vine on the far left edge */}
-        <div className="absolute left-0 top-0 bottom-0 w-28 sm:w-40 pointer-events-none opacity-25 overflow-hidden z-10">
-          <svg viewBox="0 0 100 500" fill="none" stroke="#D4AF37" strokeWidth="1.2" className="w-full h-full">
-            <path d="M-10,0 C20,60 10,120 30,180 C50,240 20,300 40,360 C60,420 30,480 20,520" />
-            <path d="M20,60 C35,50 45,65 35,75 C25,85 15,70 20,60 Z" />
-            <path d="M10,120 C-5,110 -15,125 -5,135 Z" />
-            <path d="M30,180 C48,165 60,185 45,198 C30,210 20,195 30,180 Z" />
-            <path d="M20,240 C5,225 -5,245 10,255 Z" />
-            <path d="M40,300 C58,285 70,305 55,318 Z" />
-            <path d="M25,360 C10,345 0,365 15,375 Z" />
-            <path d="M40,420 C58,405 70,425 55,438 Z" />
-            <circle cx="35" cy="75" r="3" fill="#D4AF37" />
-            <circle cx="45" cy="198" r="3" fill="#D4AF37" />
-            <circle cx="55" cy="318" r="3" fill="#D4AF37" />
-          </svg>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[580px] lg:min-h-[620px] items-stretch">
-
-            {/* Left Column: Heading, Subtitle, CTA, 3 Feature Pillars */}
-            <div className="lg:col-span-6 py-12 lg:py-20 flex flex-col justify-center space-y-6 z-20 pr-0 lg:pr-6">
-
-              {/* Coming Soon Label */}
-              <div className="flex items-center gap-2.5 text-[#E5C786] text-xs font-semibold uppercase tracking-[0.3em]">
-                <span className="text-sm">✦</span>
-                <span>COMING SOON</span>
-              </div>
-
-              {/* Main Headline */}
-              <h1 className="font-serif text-4xl sm:text-5xl lg:text-[58px] text-white font-normal leading-[1.1] tracking-tight">
-                Timeless <br />
-                Indian Elegance
-              </h1>
-
-              {/* Description */}
-              <p className="text-stone-300 text-sm sm:text-base max-w-lg font-light leading-relaxed">
-                A new destination for elegant Indian fashion is coming your way. Discover timeless style, beautiful tradition and everyday elegance with Saisaa.
-              </p>
-
-              {/* Explore Collection Button */}
-              <div className="pt-2">
-                <Link
-                  to="/shop"
-                  className="inline-flex items-center gap-3 bg-[#E5C786] hover:bg-[#F0D597] text-[#0A291E] font-bold text-xs uppercase tracking-[0.2em] py-3.5 px-7 rounded-sm shadow-md transition-all transform hover:-translate-y-0.5"
-                >
-                  <span>EXPLORE COLLECTION</span>
-                  <span className="text-base font-normal">&rarr;</span>
-                </Link>
-              </div>
-
-              {/* 3 Pillar Badges (Lotus, Diamond, Leaf) */}
-              <div className="pt-8 border-t border-white/10 grid grid-cols-3 gap-4 max-w-lg">
-                {/* 1: Tradition in every thread (Lotus) */}
-                <div className="flex flex-col items-center sm:items-start text-center sm:text-left space-y-2">
-                  <div className="w-8 h-8 flex items-center justify-center text-[#E5C786]">
-                    <svg className="w-6 h-6 stroke-[#E5C786] fill-none stroke-[1.4]" viewBox="0 0 24 24">
-                      <path d="M12 4c-1.5 3-4 6-8 7 3.5 1 6.5 4 8 9 1.5-5 4.5-8 8-9-4-1-6.5-4-8-7z" />
-                      <path d="M12 9c-1 2-2.5 4-5 4.5 2 .8 4 2.8 5 6.5 1-3.7 3-5.7 5-6.5-2.5-.5-4-2.5-5-4.5z" />
-                    </svg>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-stone-200">
-                      TRADITION
-                    </span>
-                    <span className="text-[9px] uppercase tracking-wider text-stone-400">
-                      IN EVERY THREAD
-                    </span>
-                  </div>
-                </div>
-
-                {/* 2: Modern Style For Today (Diamond) */}
-                <div className="flex flex-col items-center sm:items-start text-center sm:text-left space-y-2">
-                  <div className="w-8 h-8 flex items-center justify-center text-[#E5C786]">
-                    <svg className="w-6 h-6 stroke-[#E5C786] fill-none stroke-[1.4]" viewBox="0 0 24 24">
-                      <path d="M6 3h12l4 6-10 12L2 9l4-6z" />
-                      <path d="M2 9h20M12 21L8 9l4-6 4 6-4 12z" />
-                    </svg>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-stone-200">
-                      MODERN STYLE
-                    </span>
-                    <span className="text-[9px] uppercase tracking-wider text-stone-400">
-                      FOR TODAY
-                    </span>
-                  </div>
-                </div>
-
-                {/* 3: Made For Every You (Leaf) */}
-                <div className="flex flex-col items-center sm:items-start text-center sm:text-left space-y-2">
-                  <div className="w-8 h-8 flex items-center justify-center text-[#E5C786]">
-                    <svg className="w-6 h-6 stroke-[#E5C786] fill-none stroke-[1.4]" viewBox="0 0 24 24">
-                      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c0 3 .5 5-1 10.5A7 7 0 0 1 11 20z" />
-                      <path d="M2 22c1.25-.97 3.9-3.3 6-7" />
-                    </svg>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-stone-200">
-                      MADE FOR
-                    </span>
-                    <span className="text-[9px] uppercase tracking-wider text-stone-400">
-                      EVERY YOU
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Right Column: Model (Seamless blend, no box) */}
-            <div className="lg:col-span-6 relative flex items-end justify-center lg:justify-end overflow-hidden">
-              <div className="relative w-full h-full min-h-[460px] lg:min-h-[620px] flex items-end justify-center">
-                {/* Clean Model Photo with face & yellow suit */}
-                <img
-                  src="/images/hero-model.jpg"
-                  alt="Saisaa Indian Elegance"
-                  className="w-full h-full max-h-[640px] object-cover object-top"
-                />
-
-                {/* Left gradient blending smoothly into dark emerald background */}
-                <div className="absolute inset-y-0 left-0 w-28 sm:w-36 bg-gradient-to-r from-[#0A291E] via-[#0A291E]/50 to-transparent pointer-events-none hidden lg:block" />
-                <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#0A291E]/70 to-transparent pointer-events-none lg:hidden" />
-
-                {/* Floating "Grace in Everyday Moments" script quote */}
-                <div className="absolute right-4 sm:right-8 lg:right-10 top-1/4 sm:top-1/3 flex flex-col items-center text-center select-none pointer-events-none drop-shadow">
-                  <span className="font-script text-3xl sm:text-4xl lg:text-5xl text-[#5C4A32] leading-none">
-                    Grace
-                  </span>
-                  <span className="font-serif italic text-xs sm:text-sm text-[#735D3F] tracking-widest my-0.5">
-                    in
-                  </span>
-                  <span className="font-script text-3xl sm:text-4xl lg:text-5xl text-[#5C4A32] leading-none">
-                    Everyday
-                  </span>
-                  <span className="font-script text-3xl sm:text-4xl lg:text-5xl text-[#5C4A32] leading-none">
-                    Moments
-                  </span>
-                  <div className="w-10 sm:w-12 h-[1.5px] bg-[#735D3F]/60 mt-3" />
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
+      <HeroSlideshow />
 
       {/* ========================================================= */}
       {/* 2. TRINITY ARCHES (CATEGORIES API)                        */}
