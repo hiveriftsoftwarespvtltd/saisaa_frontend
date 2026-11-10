@@ -14,6 +14,7 @@ import {
   Check,
   X,
   Link as LinkIcon,
+  LayoutTemplate,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAdmin } from '../../context/AdminContext';
@@ -57,6 +58,94 @@ const INITIAL_SLIDE_FORM = {
   status: 'Active',
 };
 
+const FALLBACK_ADMIN_PAGE_HEROES = [
+  {
+    pageKey: 'stitched-suits',
+    pageLabel: 'Stitched Suits',
+    routePath: '/stitched-suits',
+    image: '/images/hero/hero-slide-2.jpg',
+    mobileImage: '',
+    eyebrow: 'TAILORED COUTURE',
+    title: 'Stitched Suits',
+    subtitle:
+      'Explore our latest collection of premium tailored & stitched suit sets crafted for timeless style and modern womanhood.',
+    ctaText: '',
+    ctaLink: '/stitched-suits',
+    titleStyle: 'serif',
+    overlayScrim: 'dark',
+    objectPosition: 'center',
+    status: 'Active',
+  },
+  {
+    pageKey: 'unstitched-suits',
+    pageLabel: 'Unstitched Suits',
+    routePath: '/unstitched-suits',
+    image: '/images/hero/hero-slide-3.jpg',
+    mobileImage: '',
+    eyebrow: 'ARTISANAL WEAVES',
+    title: 'Unstitched Suits',
+    subtitle:
+      'Explore our curated unstitched suit sets giving you the bespoke freedom to style and tailor to your exact grace.',
+    ctaText: '',
+    ctaLink: '/unstitched-suits',
+    titleStyle: 'serif',
+    overlayScrim: 'dark',
+    objectPosition: 'center',
+    status: 'Active',
+  },
+  {
+    pageKey: 'sarees',
+    pageLabel: 'Sarees',
+    routePath: '/sarees',
+    image: '/images/hero/hero-slide-5.jpg',
+    mobileImage: '',
+    eyebrow: 'SIX YARDS OF GRACE',
+    title: 'Heirloom Sarees',
+    subtitle:
+      'Six yards of timeless royal grace woven in pure mulberry silk, antique gold tissue, and gossamer organza.',
+    ctaText: '',
+    ctaLink: '/sarees',
+    titleStyle: 'serif',
+    overlayScrim: 'dark',
+    objectPosition: 'center',
+    status: 'Active',
+  },
+  {
+    pageKey: 'about',
+    pageLabel: 'About Us',
+    routePath: '/about',
+    image: '/images/hero/hero-slide-1.jpg',
+    mobileImage: '',
+    eyebrow: 'ABOUT SAISAA',
+    title: 'More Than Fashion',
+    subtitle:
+      "Unstitched Suits for Every Story — bringing together Indian craftsmanship and the grace of today's modern woman.",
+    ctaText: 'Our Story',
+    ctaLink: '#our-story',
+    titleStyle: 'serif',
+    overlayScrim: 'dark',
+    objectPosition: 'center 35%',
+    status: 'Active',
+  },
+  {
+    pageKey: 'contact',
+    pageLabel: 'Contact Us',
+    routePath: '/contact',
+    image: '/images/hero/hero-slide-2.jpg',
+    mobileImage: '',
+    eyebrow: 'ROYAL CONCIERGE',
+    title: 'Flagship Couture Studio',
+    subtitle:
+      'Book a private styling consultation, inquire about bespoke bridal trousseau sets, or consult our master couturiers.',
+    ctaText: '',
+    ctaLink: '/contact',
+    titleStyle: 'serif',
+    overlayScrim: 'dark',
+    objectPosition: 'center',
+    status: 'Active',
+  },
+];
+
 const resolveBannerSrc = (raw) => {
   if (!raw) return '/images/hero/hero-slide-1.jpg';
   if (raw.startsWith('/uploads/')) {
@@ -85,6 +174,7 @@ export const AdminHeroBanners = () => {
   const {
     heroBanners,
     heroMarquee,
+    pageHeroes,
     isLoadingHeroBanners,
     heroBannerError,
     refreshHeroBanners,
@@ -95,6 +185,7 @@ export const AdminHeroBanners = () => {
     addHeroMarquee,
     updateHeroMarquee,
     deleteHeroMarquee,
+    updatePageHero,
   } = useAdmin();
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -103,6 +194,27 @@ export const AdminHeroBanners = () => {
   const [isSavingSlide, setIsSavingSlide] = useState(false);
   const [showMobileImageField, setShowMobileImageField] = useState(false);
   const [formState, setFormState] = useState(INITIAL_SLIDE_FORM);
+
+  // Inner Page Hero Modal State
+  const [editingPageHero, setEditingPageHero] = useState(null);
+  const [isSavingPageHero, setIsSavingPageHero] = useState(false);
+  const [showPageMobileField, setShowPageMobileField] = useState(false);
+  const [pageHeroForm, setPageHeroForm] = useState({
+    pageKey: 'stitched-suits',
+    pageLabel: 'Stitched Suits',
+    routePath: '/stitched-suits',
+    image: '',
+    mobileImage: '',
+    eyebrow: '',
+    title: '',
+    subtitle: '',
+    ctaText: '',
+    ctaLink: '',
+    titleStyle: 'serif',
+    overlayScrim: 'dark',
+    objectPosition: 'center',
+    status: 'Active',
+  });
 
   // Marquee controls state
   const [newMarqueeText, setNewMarqueeText] = useState('');
@@ -125,6 +237,14 @@ export const AdminHeroBanners = () => {
       ),
     [heroMarquee]
   );
+
+  const resolvedPageHeroes = useMemo(() => {
+    const map = new Map((pageHeroes || []).map((p) => [p.pageKey, p]));
+    return FALLBACK_ADMIN_PAGE_HEROES.map((def) => ({
+      ...def,
+      ...(map.get(def.pageKey) || {}),
+    }));
+  }, [pageHeroes]);
 
   const stats = useMemo(() => {
     const activeSlides = sortedSlides.filter((s) => s.status === 'Active').length;
@@ -228,6 +348,52 @@ export const AdminHeroBanners = () => {
     await updateHeroMarquee(id, { text: editingMarqueeText.trim() });
     setEditingMarqueeId(null);
     setEditingMarqueeText('');
+  };
+
+  const handleOpenPageHeroEdit = (pageItem) => {
+    setEditingPageHero(pageItem);
+    setShowPageMobileField(Boolean(pageItem.mobileImage));
+    setPageHeroForm({
+      pageKey: pageItem.pageKey,
+      pageLabel: pageItem.pageLabel,
+      routePath: pageItem.routePath,
+      image: pageItem.image || '',
+      mobileImage: pageItem.mobileImage || '',
+      eyebrow: pageItem.eyebrow || '',
+      title: pageItem.title || '',
+      subtitle: pageItem.subtitle || '',
+      ctaText: pageItem.ctaText || '',
+      ctaLink: pageItem.ctaLink || '',
+      titleStyle: pageItem.titleStyle || 'serif',
+      overlayScrim: pageItem.overlayScrim || 'dark',
+      objectPosition: pageItem.objectPosition || 'center',
+      status: pageItem.status || 'Active',
+    });
+  };
+
+  const handleSavePageHero = async (e) => {
+    e.preventDefault();
+    if (!editingPageHero || !pageHeroForm.image?.trim()) return;
+
+    setIsSavingPageHero(true);
+    try {
+      await updatePageHero(editingPageHero.pageKey, {
+        image: pageHeroForm.image.trim(),
+        mobileImage: pageHeroForm.mobileImage?.trim() || '',
+        eyebrow: pageHeroForm.eyebrow?.trim() || '',
+        title: pageHeroForm.title?.trim() || '',
+        subtitle: pageHeroForm.subtitle?.trim() || '',
+        ctaText: pageHeroForm.ctaText?.trim() || '',
+        ctaLink: pageHeroForm.ctaLink?.trim() || '',
+        titleStyle: pageHeroForm.titleStyle || 'serif',
+        overlayScrim: pageHeroForm.overlayScrim || 'dark',
+        objectPosition: pageHeroForm.objectPosition || 'center',
+        status: pageHeroForm.status || 'Active',
+      });
+      setEditingPageHero(null);
+    } finally {
+      setIsSavingPageHero(false);
+    }
   };
 
   return (
@@ -497,7 +663,110 @@ export const AdminHeroBanners = () => {
         )}
       </div>
 
-      {/* SECTION 2: MARQUEE HIGHLIGHTS STRIP CRUD */}
+      {/* SECTION 2: INNER PAGE HERO BANNERS (STATIC BACKGROUND — NO SLIDER) */}
+      <div className="bg-white rounded-2xl border border-stone-200 shadow-2xs overflow-hidden">
+        <div className="p-5 sm:p-6 border-b border-stone-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FCFBF8]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[#0A261C] text-[#F7E7BE] flex items-center justify-center shrink-0">
+              <LayoutTemplate className="w-4 h-4 text-[#D4AF37]" />
+            </div>
+            <div>
+              <h2 className="font-serif text-base font-bold text-stone-900">
+                Inner Page Hero Banners ({resolvedPageHeroes.length})
+              </h2>
+              <p className="text-[11px] text-stone-500">
+                Single widescreen background hero image (no slider) for Stitched Suits, Unstitched Suits, Sarees, About &amp; Contact pages.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="divide-y divide-stone-100">
+          {resolvedPageHeroes.map((pageItem) => (
+            <div
+              key={pageItem.pageKey}
+              className="p-4 sm:p-5 flex flex-col lg:flex-row items-start lg:items-center gap-4 hover:bg-[#FAF7F2]/50 transition-colors"
+            >
+              {/* Widescreen Background Banner Thumbnail */}
+              <div className="relative w-full lg:w-64 aspect-[2/1] rounded-xl overflow-hidden border border-[#D4AF37]/40 bg-[#09231A] shrink-0 shadow-xs">
+                <img
+                  src={resolveBannerSrc(pageItem.image)}
+                  alt={pageItem.pageLabel}
+                  className="w-full h-full object-cover"
+                  style={{ objectPosition: pageItem.objectPosition || 'center' }}
+                />
+                <div className={`absolute inset-0 ${getScrimPreviewClass(pageItem.overlayScrim)}`} />
+                <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-[#09231A]/90 border border-[#D4AF37]/60 text-[#F7E7BE] text-[9px] font-mono font-bold">
+                  {pageItem.routePath}
+                </span>
+              </div>
+
+              {/* Page Hero Details */}
+              <div className="flex-1 min-w-0 space-y-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-bold text-[#0A261C] bg-[#FAF7F2] border border-[#D4AF37]/40 px-2.5 py-0.5 rounded-md">
+                    {pageItem.pageLabel}
+                  </span>
+                  <StatusBadge status={pageItem.status || 'Active'} />
+                  <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-stone-100 text-stone-600 border border-stone-200">
+                    Single Hero Image
+                  </span>
+                </div>
+
+                {pageItem.eyebrow && (
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#A37F15]">
+                    {pageItem.eyebrow}
+                  </p>
+                )}
+
+                <h3 className="font-serif text-base font-bold text-stone-900 truncate">
+                  {pageItem.title || pageItem.pageLabel}
+                </h3>
+
+                {pageItem.subtitle && (
+                  <p className="text-xs text-stone-500 line-clamp-2">{pageItem.subtitle}</p>
+                )}
+
+                {pageItem.ctaText && (
+                  <div className="pt-0.5 text-[11px] text-stone-500">
+                    <span className="inline-flex items-center gap-1 font-medium text-[#0A261C]">
+                      <LinkIcon className="w-3 h-3 text-[#D4AF37]" />
+                      CTA Button: <strong>{pageItem.ctaText}</strong> &rarr;{' '}
+                      <code className="bg-stone-100 px-1.5 py-0.5 rounded text-[10px]">
+                        {pageItem.ctaLink}
+                      </code>
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-2 shrink-0 w-full lg:w-auto justify-end pt-2 lg:pt-0 border-t lg:border-t-0 border-stone-100">
+                <Link
+                  to={pageItem.routePath}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-white border border-stone-200 text-stone-600 hover:text-[#0A261C] hover:border-[#0A261C]/40 transition-colors"
+                >
+                  <span>View Page</span>
+                  <ExternalLink className="w-3 h-3 text-[#D4AF37]" />
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenPageHeroEdit(pageItem)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider bg-[#0A261C] hover:bg-[#123D2E] text-[#F7E7BE] transition-colors cursor-pointer shadow-2xs"
+                >
+                  <Edit className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <span>Edit Hero</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* SECTION 3: MARQUEE HIGHLIGHTS STRIP CRUD */}
       <div className="bg-white rounded-2xl border border-stone-200 shadow-2xs overflow-hidden">
         <div className="p-5 sm:p-6 border-b border-stone-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FCFBF8]">
           <div className="flex items-center gap-2.5">
@@ -992,6 +1261,282 @@ export const AdminHeroBanners = () => {
                   title="Display Order"
                 />
               </div>
+            </div>
+          </div>
+        </form>
+      </AdminModal>
+
+      {/* EDIT INNER PAGE HERO MODAL */}
+      <AdminModal
+        isOpen={Boolean(editingPageHero)}
+        onClose={() => setEditingPageHero(null)}
+        title={`Edit ${editingPageHero?.pageLabel || 'Page'} Hero Banner`}
+        subtitle={`Configure single widescreen background image & overlay typography for ${editingPageHero?.routePath || ''}`}
+        maxWidth="max-w-3xl"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setEditingPageHero(null)}
+              className="px-4 py-2 text-xs font-semibold text-stone-600 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="page-hero-form"
+              disabled={isSavingPageHero || !pageHeroForm.image?.trim()}
+              className="px-5 py-2 text-xs font-bold uppercase tracking-wider bg-[#0A261C] hover:bg-[#123D2E] disabled:opacity-50 text-[#F7E7BE] rounded-xl shadow-sm transition-all cursor-pointer"
+            >
+              {isSavingPageHero ? 'Saving...' : 'Save Page Hero'}
+            </button>
+          </>
+        }
+      >
+        <form id="page-hero-form" onSubmit={handleSavePageHero} className="space-y-5">
+          {/* Live Inner Page Hero Preview */}
+          {pageHeroForm.image && (
+            <div className="space-y-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                Live Page Hero Preview ({pageHeroForm.routePath})
+              </span>
+              <div className="relative w-full aspect-[21/9] rounded-xl overflow-hidden border border-[#D4AF37]/50 bg-[#09231A] shadow-sm flex items-center justify-center">
+                {pageHeroForm.status !== 'Inactive' && (
+                  <>
+                    <img
+                      src={resolveBannerSrc(pageHeroForm.image)}
+                      alt="Page hero preview"
+                      className="absolute inset-0 w-full h-full object-cover"
+                      style={{ objectPosition: pageHeroForm.objectPosition || 'center' }}
+                    />
+                    <div
+                      className={`absolute inset-0 pointer-events-none ${getScrimPreviewClass(
+                        pageHeroForm.overlayScrim
+                      )}`}
+                    />
+                  </>
+                )}
+
+                <div className="relative z-10 px-6 text-center max-w-xl space-y-1.5">
+                  <span className="inline-block text-[9px] text-[#F7E7BE]/85 bg-[#09231A]/70 border border-[#D4AF37]/40 px-2.5 py-0.5 rounded-full">
+                    Home &gt; {pageHeroForm.pageLabel}
+                  </span>
+                  {pageHeroForm.eyebrow && (
+                    <p className="text-[9px] font-semibold uppercase tracking-[0.35em] text-[#E5C786]">
+                      {pageHeroForm.eyebrow}
+                    </p>
+                  )}
+                  <p
+                    className={
+                      pageHeroForm.titleStyle === 'script'
+                        ? 'font-script text-3xl text-[#F7E7BE] leading-none drop-shadow'
+                        : 'font-serif text-xl sm:text-2xl font-bold text-[#FAF7F2] drop-shadow'
+                    }
+                  >
+                    {pageHeroForm.title || pageHeroForm.pageLabel}
+                  </p>
+                  {pageHeroForm.subtitle && (
+                    <p className="text-[10px] text-[#F7E7BE]/90 line-clamp-2">
+                      {pageHeroForm.subtitle}
+                    </p>
+                  )}
+                  {pageHeroForm.ctaText && (
+                    <div className="pt-1">
+                      <span className="inline-block bg-[#09231A] border border-[#D4AF37] text-[#F7E7BE] text-[9px] font-semibold uppercase tracking-widest px-3.5 py-1 rounded">
+                        {pageHeroForm.ctaText}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Desktop Background Image */}
+          <ImageUpload
+            label="Background Hero Banner Image (Recommended 16:9 / 2:1 Widescreen) *"
+            value={pageHeroForm.image}
+            onChange={(url) => setPageHeroForm((prev) => ({ ...prev, image: url }))}
+            aspectRatio="aspect-[21/9]"
+            presets={HERO_PRESETS}
+          />
+
+          {/* Optional Mobile Banner Override */}
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => setShowPageMobileField(!showPageMobileField)}
+              className="text-[11px] font-semibold text-[#18523D] hover:underline cursor-pointer"
+            >
+              {showPageMobileField
+                ? '- Hide Optional Mobile Banner Override'
+                : '+ Optional: Upload Separate Mobile Background Image'}
+            </button>
+
+            {showPageMobileField && (
+              <ImageUpload
+                label="Mobile Background Banner Override (Optional)"
+                value={pageHeroForm.mobileImage}
+                onChange={(url) =>
+                  setPageHeroForm((prev) => ({ ...prev, mobileImage: url }))
+                }
+                aspectRatio="aspect-[21/9]"
+                presets={HERO_PRESETS}
+              />
+            )}
+          </div>
+
+          {/* Text Fields */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-stone-700">
+                Eyebrow / Top Label
+              </label>
+              <input
+                type="text"
+                value={pageHeroForm.eyebrow}
+                onChange={(e) =>
+                  setPageHeroForm((prev) => ({ ...prev, eyebrow: e.target.value }))
+                }
+                placeholder="e.g. TAILORED COUTURE"
+                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-stone-200 focus:outline-none focus:border-[#0A261C]"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-stone-700">
+                Headline Font Style
+              </label>
+              <select
+                value={pageHeroForm.titleStyle}
+                onChange={(e) =>
+                  setPageHeroForm((prev) => ({ ...prev, titleStyle: e.target.value }))
+                }
+                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-[#0A261C]"
+              >
+                <option value="serif">Luxury Classic Serif (Playfair)</option>
+                <option value="script">Signature Gold Script (Alex Brush)</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5 sm:col-span-2">
+              <label className="text-xs font-semibold uppercase tracking-wider text-stone-700">
+                Main Page Headline
+              </label>
+              <input
+                type="text"
+                value={pageHeroForm.title}
+                onChange={(e) =>
+                  setPageHeroForm((prev) => ({ ...prev, title: e.target.value }))
+                }
+                placeholder="e.g. Stitched Suits"
+                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-stone-200 focus:outline-none focus:border-[#0A261C]"
+              />
+            </div>
+
+            <div className="space-y-1.5 sm:col-span-2">
+              <label className="text-xs font-semibold uppercase tracking-wider text-stone-700">
+                Subtitle / Description
+              </label>
+              <textarea
+                rows={2}
+                value={pageHeroForm.subtitle}
+                onChange={(e) =>
+                  setPageHeroForm((prev) => ({ ...prev, subtitle: e.target.value }))
+                }
+                placeholder="Short editorial description shown over the hero background..."
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-stone-200 focus:outline-none focus:border-[#0A261C]"
+              />
+            </div>
+          </div>
+
+          {/* Optional CTA Button */}
+          <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#D4AF37]/30 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-stone-700">
+                Optional Button Label
+              </label>
+              <input
+                type="text"
+                value={pageHeroForm.ctaText}
+                onChange={(e) =>
+                  setPageHeroForm((prev) => ({ ...prev, ctaText: e.target.value }))
+                }
+                placeholder="Leave blank for no button"
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-[#0A261C]"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-stone-700">
+                Button Link / Anchor
+              </label>
+              <input
+                type="text"
+                value={pageHeroForm.ctaLink}
+                onChange={(e) =>
+                  setPageHeroForm((prev) => ({ ...prev, ctaLink: e.target.value }))
+                }
+                placeholder="/shop or #our-story"
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-[#0A261C]"
+              />
+            </div>
+          </div>
+
+          {/* Scrim, Focal Crop & Status */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold uppercase tracking-wider text-stone-700">
+                Scrim Contrast
+              </label>
+              <select
+                value={pageHeroForm.overlayScrim}
+                onChange={(e) =>
+                  setPageHeroForm((prev) => ({ ...prev, overlayScrim: e.target.value }))
+                }
+                className="w-full px-3 py-2 text-xs rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-[#0A261C]"
+              >
+                <option value="dark">Full Emerald Gradient</option>
+                <option value="bottom">Emerald Bottom Fade</option>
+                <option value="light">Soft Emerald Tint</option>
+                <option value="none">None (Bright Photo)</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold uppercase tracking-wider text-stone-700">
+                Focal Crop
+              </label>
+              <select
+                value={pageHeroForm.objectPosition}
+                onChange={(e) =>
+                  setPageHeroForm((prev) => ({
+                    ...prev,
+                    objectPosition: e.target.value,
+                  }))
+                }
+                className="w-full px-3 py-2 text-xs rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-[#0A261C]"
+              >
+                <option value="center">Center</option>
+                <option value="center 25%">Upper Center</option>
+                <option value="center 35%">Slightly Upper</option>
+                <option value="top">Top Edge</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold uppercase tracking-wider text-stone-700">
+                Background Photo Status
+              </label>
+              <select
+                value={pageHeroForm.status}
+                onChange={(e) =>
+                  setPageHeroForm((prev) => ({ ...prev, status: e.target.value }))
+                }
+                className="w-full px-3 py-2 text-xs rounded-xl border border-stone-200 bg-white focus:outline-none focus:border-[#0A261C]"
+              >
+                <option value="Active">Active (Show Photo)</option>
+                <option value="Inactive">Inactive (Solid Emerald)</option>
+              </select>
             </div>
           </div>
         </form>

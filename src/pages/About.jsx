@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { PageHeroBanner } from '../components/PageHeroBanner';
 import {
   Crown,
   ArrowRight,
@@ -19,79 +20,17 @@ export const About = () => {
       {/* ========================================================= */}
       {/* 1. HERO SECTION: "ABOUT SAISAA - More Than Fashion"       */}
       {/* ========================================================= */}
-      <section className="relative overflow-hidden bg-[#FAF6F0] border-b border-[#D4AF37]/20 py-10 md:py-16">
-        {/* Left Botanical Branch Vine Art */}
-        <div className="absolute top-0 left-0 h-full pointer-events-none select-none opacity-35 z-0">
-          <svg viewBox="0 0 240 380" className="h-full w-auto text-[#D4AF37]" fill="none" stroke="currentColor" strokeWidth="1.2">
-            <path d="M10 380 C30 300, 20 200, 50 140 C70 90, 110 50, 170 20" strokeLinecap="round" />
-            <path d="M35 300 C55 285, 75 300, 80 320 C60 325, 45 315, 35 300 Z" fill="currentColor" fillOpacity="0.2" />
-            <path d="M45 220 C65 200, 90 215, 90 235 C70 240, 55 230, 45 220 Z" fill="currentColor" fillOpacity="0.2" />
-            <path d="M55 150 C75 130, 100 140, 105 160 C85 165, 70 155, 55 150 Z" fill="currentColor" fillOpacity="0.2" />
-            <path d="M90 90 C110 70, 135 80, 135 100 C115 105, 100 95, 90 90 Z" fill="currentColor" fillOpacity="0.2" />
-            <path d="M130 45 C150 25, 175 35, 175 55 C155 60, 140 50, 130 45 Z" fill="currentColor" fillOpacity="0.2" />
-          </svg>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            
-            {/* Left Column: Heading, Subtitle, Description & CTA */}
-            <div className="lg:col-span-6 space-y-4 sm:space-y-6 text-center lg:text-left">
-              <span className="text-[11px] sm:text-xs uppercase tracking-[0.3em] text-[#A37F15] font-bold block">
-                ABOUT SAISAA
-              </span>
-
-              <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-stone-900 font-bold leading-[1.08] tracking-tight">
-                More Than <br className="hidden sm:inline" />
-                Fashion
-              </h1>
-
-              <p className="font-serif text-lg sm:text-xl text-[#09231A] font-semibold italic">
-                Unstitched Suits for Every Story
-              </p>
-
-              <p className="text-xs sm:text-sm text-stone-600 leading-relaxed max-w-xl mx-auto lg:mx-0 font-light">
-                At Saisaa, we believe fashion is more than just what you wear, it's a reflection of who you are. Our unstitched suits are designed for modern women who value elegance, comfort and individuality.
-              </p>
-
-              <div className="pt-2">
-                <a
-                  href="#our-story"
-                  className="inline-flex items-center gap-2 bg-[#E5C786] hover:bg-[#D4AF37] text-[#09231A] px-7 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-sm active:scale-95"
-                >
-                  <span>Our Story</span>
-                  <ArrowRight className="w-4 h-4" />
-                </a>
-              </div>
-            </div>
-
-            {/* Right Column: Model Seated with Script Overlay */}
-            <div className="lg:col-span-6 relative flex items-center justify-center">
-              <div className="relative w-full max-w-md lg:max-w-none h-80 sm:h-96 lg:h-[480px] rounded-3xl overflow-hidden shadow-sm">
-                <img
-                  src="/images/01_hero_banner.jpg"
-                  alt="Saisaa - Timeless Fabrics Modern Women"
-                  className="w-full h-full object-cover object-top"
-                />
-                {/* Smooth Gradient Blending into Cream Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#FAF6F0]/80 via-transparent to-transparent lg:block hidden pointer-events-none" />
-                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#FAF6F0] via-[#FAF6F0]/50 to-transparent pointer-events-none" />
-              </div>
-
-              {/* Floating "Timeless Fabrics Modern Women" Cursive Quote */}
-              <div className="absolute right-4 sm:right-8 top-12 sm:top-16 text-right select-none pointer-events-none drop-shadow-sm">
-                <p className="font-script text-2xl sm:text-3xl lg:text-4xl text-[#5C4A32] leading-tight">
-                  Timeless <br />
-                  Fabrics <br />
-                  Modern <br />
-                  Women
-                </p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
+      <PageHeroBanner
+        pageKey="about"
+        breadcrumb="About Us"
+        eyebrow="ABOUT SAISAA"
+        titleLine1="More Than Fashion"
+        description="Unstitched Suits for Every Story — bringing together Indian craftsmanship and the grace of today's modern woman."
+        backgroundImage="/images/hero/hero-slide-1.jpg"
+        objectPosition="center 35%"
+        ctaText="Our Story"
+        ctaLink="#our-story"
+      />
 
       {/* ========================================================= */}
       {/* 2. SECTION 2: "OUR STORY - A Journey Rooted in Elegance"   */}

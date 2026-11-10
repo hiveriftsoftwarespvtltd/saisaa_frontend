@@ -714,6 +714,13 @@ export const Shop = ({ forcedCategory = null }) => {
         </section>
       ) : (
         <PageHeroBanner
+          pageKey={
+            ['stitched-suits', 'unstitched-suits', 'sarees'].includes(
+              selectedCategory
+            )
+              ? selectedCategory
+              : undefined
+          }
           breadcrumb={headerInfo.breadcrumb}
           titleLine1={headerInfo.titleLine1}
           titleLine2={headerInfo.titleLine2}

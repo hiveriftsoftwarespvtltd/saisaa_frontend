@@ -53,11 +53,12 @@ export const Contact = () => {
     <div className="w-full space-y-12 pb-16">
       {/* Page Hero Banner */}
       <PageHeroBanner
+        pageKey="contact"
         breadcrumb="Contact"
-        titleLine1="Royal Concierge"
-        titleLine2="& Flagship Studio"
+        eyebrow="ROYAL CONCIERGE"
+        titleLine1="Flagship Couture Studio"
         description="We are at your gracious service. Book a private styling consultation, inquire about customized bridal trousseau sets, or consult our master couturiers."
-        modelImage="/images/06_product_5.jpg"
+        backgroundImage="/images/hero/hero-slide-2.jpg"
         modelAlt="Royal Concierge Atelier"
       />
 

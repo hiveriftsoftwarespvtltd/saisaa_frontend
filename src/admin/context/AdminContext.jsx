@@ -43,6 +43,25 @@ const normalizeHeroMarquee = (m) => ({
   status: m.status || 'Active',
 });
 
+const normalizePageHero = (p) => ({
+  ...p,
+  id: p.id || p._id?.toString() || p.pageKey,
+  pageKey: p.pageKey || 'stitched-suits',
+  pageLabel: p.pageLabel || 'Page Hero',
+  routePath: p.routePath || '/',
+  image: p.image || '/images/hero/hero-slide-2.jpg',
+  mobileImage: p.mobileImage || '',
+  eyebrow: p.eyebrow || '',
+  title: p.title || '',
+  subtitle: p.subtitle || '',
+  ctaText: p.ctaText || '',
+  ctaLink: p.ctaLink || '',
+  titleStyle: p.titleStyle || 'serif',
+  overlayScrim: p.overlayScrim || 'dark',
+  objectPosition: p.objectPosition || 'center',
+  status: p.status || 'Active',
+});
+
 const normalizeProduct = (p) => {
   const pid = p.customId || p.id || (p._id ? p._id.toString() : '');
   const stockVal = p.stock !== undefined ? Number(p.stock) : 15;
@@ -147,6 +166,7 @@ export const AdminProvider = ({ children }) => {
   const [inquiries, setInquiries] = useState([]);
   const [heroBanners, setHeroBanners] = useState([]);
   const [heroMarquee, setHeroMarquee] = useState([]);
+  const [pageHeroes, setPageHeroes] = useState([]);
 
   // Server Connectivity & Error Tracking
   const [isServerOnline, setIsServerOnline] = useState(true);
@@ -394,17 +414,19 @@ export const AdminProvider = ({ children }) => {
     }
   }, []);
 
-  // Fetch live Hero Slides & Marquee Highlights from NestJS Backend
+  // Fetch live Hero Slides, Page Heroes & Marquee Highlights from NestJS Backend
   const fetchHeroBanners = useCallback(async () => {
     try {
       setIsLoadingHeroBanners(true);
       setHeroBannerError(null);
-      const [slidesRes, marqueeRes] = await Promise.all([
+      const [slidesRes, marqueeRes, pagesRes] = await Promise.all([
         apiClient.get(API_ENDPOINTS.HERO_BANNERS.BASE),
         apiClient.get(API_ENDPOINTS.HERO_BANNERS.MARQUEE),
+        apiClient.get(API_ENDPOINTS.HERO_BANNERS.PAGES).catch(() => null),
       ]);
       const slidesData = slidesRes?.data || slidesRes;
       const marqueeData = marqueeRes?.data || marqueeRes;
+      const pagesData = pagesRes?.data || pagesRes;
       if (Array.isArray(slidesData)) {
         setHeroBanners(slidesData.map(normalizeHeroBanner));
       } else {
@@ -414,6 +436,9 @@ export const AdminProvider = ({ children }) => {
         setHeroMarquee(marqueeData.map(normalizeHeroMarquee));
       } else {
         setHeroMarquee([]);
+      }
+      if (Array.isArray(pagesData)) {
+        setPageHeroes(pagesData.map(normalizePageHero));
       }
     } catch (err) {
       const errMsg = err.message || 'Unable to connect to hero banners API';
@@ -1554,6 +1579,29 @@ export const AdminProvider = ({ children }) => {
     }
   };
 
+  // Inner Page Hero Banner Update (Stitched Suits, Unstitched Suits, Sarees, About, Contact)
+  const updatePageHero = async (pageKey, fields) => {
+    try {
+      const res = await apiClient.put(
+        API_ENDPOINTS.HERO_BANNERS.PAGE_BY_KEY(pageKey),
+        fields
+      );
+      const updated = res?.data ? normalizePageHero(res.data) : null;
+      setPageHeroes((prev) =>
+        prev.map((item) =>
+          item.pageKey === pageKey
+            ? { ...item, ...fields, ...(updated || {}) }
+            : item
+        )
+      );
+      showAdminToast('Page hero section updated successfully', 'success');
+      return updated;
+    } catch (err) {
+      showAdminToast(err.message || 'Failed to update page hero section', 'error');
+      throw err;
+    }
+  };
+
   return (
     <AdminContext.Provider
       value={{
@@ -1616,6 +1664,7 @@ export const AdminProvider = ({ children }) => {
         deleteInquiry,
         heroBanners,
         heroMarquee,
+        pageHeroes,
         isLoadingHeroBanners,
         heroBannerError,
         refreshHeroBanners: fetchHeroBanners,
@@ -1626,6 +1675,7 @@ export const AdminProvider = ({ children }) => {
         addHeroMarquee,
         updateHeroMarquee,
         deleteHeroMarquee,
+        updatePageHero,
         returns,
         updateReturnStatus,
         payments,
