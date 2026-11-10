@@ -26,11 +26,14 @@
 }
 
 @layer base {
+  html, body {
+    overflow-x: clip;
+  }
+
   body {
     background-color: var(--color-cream-bg);
     color: #1a241f;
     font-family: var(--font-sans);
-    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, .font-serif-title {

@@ -176,21 +176,21 @@ export const Navbar = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-[#0A291E] text-stone-100 border-b border-[#D4AF37]/20 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-2 h-16 sm:h-20">
 
           {/* Mobile Menu & Search Icon */}
-          <div className="flex items-center lg:hidden">
+          <div className="flex items-center gap-0.5 sm:gap-1 lg:hidden shrink-0">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-[#E8D49E] hover:text-white rounded-lg focus:outline-none transition-colors"
+              className="p-1.5 sm:p-2 text-[#E8D49E] hover:text-white rounded-lg focus:outline-none transition-colors"
               aria-label="Toggle Navigation"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
             </button>
             <button
               onClick={() => setSearchOpen(!searchOpen)}
-              className="p-2 text-[#E8D49E] hover:text-white rounded-lg transition-colors ml-1"
+              className="p-1.5 sm:p-2 text-[#E8D49E] hover:text-white rounded-lg transition-colors"
               aria-label="Search"
             >
               <Search className="w-5 h-5" />
@@ -198,26 +198,20 @@ export const Navbar = () => {
           </div>
 
           {/* Brand Laurel Logo */}
-          <Link to="/" className="flex items-center gap-3 group py-1" aria-label="SAISAA Home">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden border border-[#D4AF37]/80 shadow-[0_0_14px_rgba(212,175,55,0.4)] transition-transform duration-300 group-hover:scale-105 shrink-0">
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 group py-1 min-w-0 shrink-0" aria-label="SAISAA Home">
+            <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden border border-[#D4AF37]/80 shadow-[0_0_14px_rgba(212,175,55,0.4)] transition-transform duration-300 group-hover:scale-105 shrink-0">
               <img
                 src="/saisaa-logo.jpg"
                 alt="Saisaa"
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
               <span
-                className="text-2xl sm:text-3xl font-bold tracking-normal text-[#F7E7BE] leading-none group-hover:text-white transition-colors"
+                className="text-xl sm:text-3xl font-bold tracking-normal text-[#F7E7BE] leading-none group-hover:text-white transition-colors"
                 style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
               >
                 Saisaa
-              </span>
-              <span
-                className="text-[9px] sm:text-[10px] uppercase tracking-[0.24em] text-[#D4AF37] font-semibold mt-1"
-                style={{ fontFamily: "'Cinzel', Georgia, serif" }}
-              >
-               
               </span>
             </div>
           </Link>
@@ -325,7 +319,7 @@ export const Navbar = () => {
           </nav>
 
           {/* Utility Action Icons: Search, Wishlist, Bag */}
-          <div className="flex items-center space-x-4 sm:space-x-5 text-stone-300">
+          <div className="flex items-center gap-1 sm:gap-3.5 lg:gap-4 text-stone-300 shrink-0">
             {/* Search Icon (Desktop only, mobile has it on the left) */}
             <button
               onClick={() => setSearchOpen(!searchOpen)}
