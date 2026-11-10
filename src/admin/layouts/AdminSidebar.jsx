@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
+  Images,
   Package,
   FolderTree,
   Tag,
@@ -36,6 +37,12 @@ export const AdminSidebar = ({ mobileOpen, onCloseMobile }) => {
       title: null, // Top single item
       items: [
         { label: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+      ],
+    },
+    {
+      title: 'STOREFRONT',
+      items: [
+        { label: 'Hero Banners', path: '/admin/hero-banners', icon: Images },
       ],
     },
     {
@@ -100,7 +107,7 @@ export const AdminSidebar = ({ mobileOpen, onCloseMobile }) => {
         }`}
       >
         {/* 1. Brand Logo Header */}
-        <div>
+        <div className="flex-1 flex flex-col min-h-0">
           <div className="h-20 flex items-center justify-between px-6 border-b border-[#D4AF37]/20 bg-[#061A13]">
             <Link to="/admin/dashboard" className="flex items-center gap-3 group">
               <div className="w-10 h-10 rounded-full overflow-hidden border border-[#D4AF37]/80 shadow-[0_0_10px_rgba(212,175,55,0.3)] shrink-0">
@@ -148,7 +155,7 @@ export const AdminSidebar = ({ mobileOpen, onCloseMobile }) => {
           </div>
 
           {/* 2. Navigation Links */}
-          <div className="py-4 px-3 space-y-6 overflow-y-auto max-h-[calc(100vh-180px)] scrollbar-thin">
+          <div className="flex-1 py-4 px-3 space-y-6 overflow-y-auto scrollbar-thin">
             {navSections.map((sec, idx) => (
               <div key={idx} className="space-y-1">
                 {sec.title && (

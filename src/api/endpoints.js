@@ -77,6 +77,17 @@ export const API_ENDPOINTS = {
     VALIDATE: '/coupons/validate',
   },
 
+  // Dynamic Hero Section (Slides & Marquee Highlights)
+  HERO_BANNERS: {
+    BASE: '/hero-banners',
+    ACTIVE: '/hero-banners?status=Active',
+    BY_ID: (id) => `/hero-banners/${id}`,
+    REORDER: '/hero-banners/reorder',
+    MARQUEE: '/hero-banners/marquee',
+    MARQUEE_ACTIVE: '/hero-banners/marquee?status=Active',
+    MARQUEE_BY_ID: (id) => `/hero-banners/marquee/${id}`,
+  },
+
   // Patron Reviews & Ratings Engine
   REVIEWS: {
     BASE: '/reviews',

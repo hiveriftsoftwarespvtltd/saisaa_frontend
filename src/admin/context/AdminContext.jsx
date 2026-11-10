@@ -17,6 +17,32 @@ const normalizeCategory = (cat) => ({
   subCategories: Array.isArray(cat.subCategories) ? cat.subCategories : [],
 });
 
+const normalizeHeroBanner = (b) => ({
+  ...b,
+  id: b.id || b._id?.toString(),
+  image: b.image || '/images/hero/hero-slide-1.jpg',
+  mobileImage: b.mobileImage || '',
+  eyebrow: b.eyebrow || '',
+  title: b.title || '',
+  subtitle: b.subtitle || '',
+  ctaText: b.ctaText || '',
+  ctaLink: b.ctaLink || '/shop',
+  titleStyle: b.titleStyle || 'serif',
+  layoutPreset: b.layoutPreset || 'center',
+  overlayScrim: b.overlayScrim || 'bottom',
+  objectPosition: b.objectPosition || 'center',
+  displayOrder: Number(b.displayOrder ?? 0),
+  status: b.status || 'Active',
+});
+
+const normalizeHeroMarquee = (m) => ({
+  ...m,
+  id: m.id || m._id?.toString(),
+  text: m.text || '',
+  displayOrder: Number(m.displayOrder ?? 0),
+  status: m.status || 'Active',
+});
+
 const normalizeProduct = (p) => {
   const pid = p.customId || p.id || (p._id ? p._id.toString() : '');
   const stockVal = p.stock !== undefined ? Number(p.stock) : 15;
@@ -119,6 +145,8 @@ export const AdminProvider = ({ children }) => {
   const [reviews, setReviews] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [inquiries, setInquiries] = useState([]);
+  const [heroBanners, setHeroBanners] = useState([]);
+  const [heroMarquee, setHeroMarquee] = useState([]);
 
   // Server Connectivity & Error Tracking
   const [isServerOnline, setIsServerOnline] = useState(true);
@@ -131,6 +159,7 @@ export const AdminProvider = ({ children }) => {
   const [reviewError, setReviewError] = useState(null);
   const [inventoryError, setInventoryError] = useState(null);
   const [inquiryError, setInquiryError] = useState(null);
+  const [heroBannerError, setHeroBannerError] = useState(null);
   const [isRetryingAll, setIsRetryingAll] = useState(false);
 
   // Loading States
@@ -142,6 +171,7 @@ export const AdminProvider = ({ children }) => {
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
   const [isLoadingInventory, setIsLoadingInventory] = useState(false);
   const [isLoadingInquiries, setIsLoadingInquiries] = useState(false);
+  const [isLoadingHeroBanners, setIsLoadingHeroBanners] = useState(false);
 
   // Fetch live products from NestJS Backend
   const fetchProducts = useCallback(async () => {
@@ -364,6 +394,36 @@ export const AdminProvider = ({ children }) => {
     }
   }, []);
 
+  // Fetch live Hero Slides & Marquee Highlights from NestJS Backend
+  const fetchHeroBanners = useCallback(async () => {
+    try {
+      setIsLoadingHeroBanners(true);
+      setHeroBannerError(null);
+      const [slidesRes, marqueeRes] = await Promise.all([
+        apiClient.get(API_ENDPOINTS.HERO_BANNERS.BASE),
+        apiClient.get(API_ENDPOINTS.HERO_BANNERS.MARQUEE),
+      ]);
+      const slidesData = slidesRes?.data || slidesRes;
+      const marqueeData = marqueeRes?.data || marqueeRes;
+      if (Array.isArray(slidesData)) {
+        setHeroBanners(slidesData.map(normalizeHeroBanner));
+      } else {
+        setHeroBanners([]);
+      }
+      if (Array.isArray(marqueeData)) {
+        setHeroMarquee(marqueeData.map(normalizeHeroMarquee));
+      } else {
+        setHeroMarquee([]);
+      }
+    } catch (err) {
+      const errMsg = err.message || 'Unable to connect to hero banners API';
+      setHeroBannerError(errMsg);
+      console.warn('Backend hero banners fetch failed:', errMsg);
+    } finally {
+      setIsLoadingHeroBanners(false);
+    }
+  }, []);
+
   // Global Retry All APIs Method
   const retryAll = useCallback(async () => {
     setIsRetryingAll(true);
@@ -376,6 +436,7 @@ export const AdminProvider = ({ children }) => {
     setReviewError(null);
     setInventoryError(null);
     setInquiryError(null);
+    setHeroBannerError(null);
     try {
       await Promise.allSettled([
         fetchCategories(),
@@ -386,6 +447,7 @@ export const AdminProvider = ({ children }) => {
         fetchReviews(),
         fetchInventory(),
         fetchInquiries(),
+        fetchHeroBanners(),
       ]);
     } finally {
       setIsRetryingAll(false);
@@ -399,6 +461,7 @@ export const AdminProvider = ({ children }) => {
     fetchReviews,
     fetchInventory,
     fetchInquiries,
+    fetchHeroBanners,
   ]);
 
   useEffect(() => {
@@ -410,6 +473,7 @@ export const AdminProvider = ({ children }) => {
     fetchReviews();
     fetchInventory();
     fetchInquiries();
+    fetchHeroBanners();
   }, [
     fetchCategories,
     fetchProducts,
@@ -419,6 +483,7 @@ export const AdminProvider = ({ children }) => {
     fetchReviews,
     fetchInventory,
     fetchInquiries,
+    fetchHeroBanners,
   ]);
 
   const updateCustomer = async (id, updatedFields) => {
@@ -1366,6 +1431,129 @@ export const AdminProvider = ({ children }) => {
     }
   };
 
+  // Hero Banner Slides CRUD
+  const addHeroBanner = async (slideData) => {
+    try {
+      const res = await apiClient.post(API_ENDPOINTS.HERO_BANNERS.BASE, slideData);
+      const created = normalizeHeroBanner(res?.data || slideData);
+      setHeroBanners((prev) =>
+        [...prev, created].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+      );
+      showAdminToast('Hero banner slide created successfully', 'success');
+      return created;
+    } catch (err) {
+      showAdminToast(err.message || 'Failed to create hero banner slide', 'error');
+      throw err;
+    }
+  };
+
+  const updateHeroBanner = async (id, fields) => {
+    try {
+      const res = await apiClient.put(API_ENDPOINTS.HERO_BANNERS.BY_ID(id), fields);
+      const updated = res?.data ? normalizeHeroBanner(res.data) : null;
+      setHeroBanners((prev) =>
+        prev
+          .map((item) =>
+            item.id === id || item._id === id
+              ? { ...item, ...fields, ...(updated || {}) }
+              : item
+          )
+          .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+      );
+      showAdminToast('Hero banner slide updated successfully', 'success');
+    } catch (err) {
+      showAdminToast(err.message || 'Failed to update hero banner slide', 'error');
+      throw err;
+    }
+  };
+
+  const deleteHeroBanner = async (id) => {
+    try {
+      await apiClient.delete(API_ENDPOINTS.HERO_BANNERS.BY_ID(id));
+      setHeroBanners((prev) => prev.filter((item) => item.id !== id && item._id !== id));
+      showAdminToast('Hero banner slide deleted successfully', 'info');
+    } catch (err) {
+      showAdminToast(err.message || 'Failed to delete hero banner slide', 'error');
+      throw err;
+    }
+  };
+
+  const reorderHeroBanners = async (orderedIds) => {
+    try {
+      // Optimistically re-sort locally immediately
+      const orderMap = new Map(orderedIds.map((id, idx) => [id, idx + 1]));
+      setHeroBanners((prev) =>
+        [...prev]
+          .map((item) => ({
+            ...item,
+            displayOrder: orderMap.get(item.id) ?? item.displayOrder,
+          }))
+          .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+      );
+
+      const res = await apiClient.patch(API_ENDPOINTS.HERO_BANNERS.REORDER, {
+        orderedIds,
+      });
+      if (Array.isArray(res?.data)) {
+        setHeroBanners(res.data.map(normalizeHeroBanner));
+      }
+      showAdminToast('Slide display order saved', 'success');
+    } catch (err) {
+      showAdminToast(err.message || 'Failed to reorder slides', 'error');
+      fetchHeroBanners();
+    }
+  };
+
+  // Hero Marquee Highlights CRUD
+  const addHeroMarquee = async (itemData) => {
+    try {
+      const res = await apiClient.post(API_ENDPOINTS.HERO_BANNERS.MARQUEE, itemData);
+      const created = normalizeHeroMarquee(res?.data || itemData);
+      setHeroMarquee((prev) =>
+        [...prev, created].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+      );
+      showAdminToast('Marquee highlight added successfully', 'success');
+      return created;
+    } catch (err) {
+      showAdminToast(err.message || 'Failed to add marquee highlight', 'error');
+      throw err;
+    }
+  };
+
+  const updateHeroMarquee = async (id, fields) => {
+    try {
+      const res = await apiClient.put(
+        API_ENDPOINTS.HERO_BANNERS.MARQUEE_BY_ID(id),
+        fields
+      );
+      const updated = res?.data ? normalizeHeroMarquee(res.data) : null;
+      setHeroMarquee((prev) =>
+        prev
+          .map((item) =>
+            item.id === id || item._id === id
+              ? { ...item, ...fields, ...(updated || {}) }
+              : item
+          )
+          .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+      );
+      showAdminToast('Marquee highlight updated', 'success');
+    } catch (err) {
+      showAdminToast(err.message || 'Failed to update marquee highlight', 'error');
+      throw err;
+    }
+  };
+
+  const deleteHeroMarquee = async (id) => {
+    try {
+      await apiClient.delete(API_ENDPOINTS.HERO_BANNERS.MARQUEE_BY_ID(id));
+      setHeroMarquee((prev) => prev.filter((item) => item.id !== id && item._id !== id));
+      showAdminToast('Marquee highlight deleted', 'info');
+    } catch (err) {
+      showAdminToast(err.message || 'Failed to delete marquee highlight', 'error');
+      throw err;
+    }
+  };
+
   return (
     <AdminContext.Provider
       value={{
@@ -1426,6 +1614,18 @@ export const AdminProvider = ({ children }) => {
         refreshInquiries: fetchInquiries,
         updateInquiryStatus,
         deleteInquiry,
+        heroBanners,
+        heroMarquee,
+        isLoadingHeroBanners,
+        heroBannerError,
+        refreshHeroBanners: fetchHeroBanners,
+        addHeroBanner,
+        updateHeroBanner,
+        deleteHeroBanner,
+        reorderHeroBanners,
+        addHeroMarquee,
+        updateHeroMarquee,
+        deleteHeroMarquee,
         returns,
         updateReturnStatus,
         payments,
