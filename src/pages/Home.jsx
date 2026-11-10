@@ -149,16 +149,16 @@ export const Home = () => {
       <HeroSlideshow />
 
       {/* ========================================================= */}
-      {/* 2. TRINITY ARCHES (CATEGORIES API)                        */}
+      {/* 2. SIGNATURE CATEGORY CARDS (SQUARE LAYOUT / API)         */}
       {/* ========================================================= */}
       <section className="relative pt-12 pb-8 lg:pt-16 lg:pb-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Loading Skeleton */}
         {isLoadingCategories ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             {[1, 2, 3].map((n) => (
               <div
                 key={n}
-                className="w-full aspect-[3/4.4] rounded-t-[140px] sm:rounded-t-[180px] bg-stone-200/60 animate-pulse border border-[#D4AF37]/20"
+                className="w-full aspect-square rounded-lg bg-stone-200/60 animate-pulse border border-[#D4AF37]/20"
               />
             ))}
           </div>
@@ -170,7 +170,7 @@ export const Home = () => {
                 : categories.length === 2
                 ? 'md:grid-cols-2 max-w-3xl mx-auto'
                 : 'md:grid-cols-3'
-            } gap-8 lg:gap-10`}
+            } gap-6 lg:gap-8`}
           >
             {categories.map((cat, idx) => {
               const catId = cat.id || cat._id || cat.slug || idx;
@@ -178,24 +178,27 @@ export const Home = () => {
                 ? `/${cat.slug}`
                 : `/shop?category=${encodeURIComponent(cat.name)}`;
               const rawImage = cat.image || '';
+              const normalizedRaw = rawImage.startsWith('http://api.saisaa.com/')
+                ? rawImage.replace('http://api.saisaa.com/', 'https://api.saisaa.com/')
+                : rawImage;
               const resolvedImage =
-                rawImage.startsWith('http') || rawImage.startsWith('data:')
-                  ? rawImage
-                  : rawImage.startsWith('/uploads/')
-                  ? `${API_BASE_URL.replace(/\/api\/v1\/?$/, '')}${rawImage}`
-                  : rawImage.includes('02_category_suits')
+                normalizedRaw.startsWith('http') || normalizedRaw.startsWith('data:')
+                  ? normalizedRaw
+                  : normalizedRaw.startsWith('/uploads/')
+                  ? `${API_BASE_URL.replace(/\/api\/v1\/?$/, '')}${normalizedRaw}`
+                  : normalizedRaw.includes('02_category_suits')
                   ? '/images/10_category_suits.jpg'
-                  : rawImage.includes('03_category_kurtis')
+                  : normalizedRaw.includes('03_category_kurtis')
                   ? '/images/11_category_kurtis.jpg'
-                  : rawImage.includes('04_category_sarees')
+                  : normalizedRaw.includes('04_category_sarees')
                   ? '/images/12_category_sarees.jpg'
-                  : rawImage || '/images/10_category_suits.jpg';
+                  : normalizedRaw || '/images/10_category_suits.jpg';
 
               return (
                 <div key={catId} className="group relative flex flex-col items-center">
                   <Link
                     to={targetLink}
-                    className="relative w-full aspect-[3/4.4] rounded-t-[140px] sm:rounded-t-[180px] overflow-hidden border border-[#D4AF37]/35 shadow-md group-hover:shadow-xl transition-all duration-500 block bg-[#EFE9DF]"
+                    className="relative w-full aspect-square rounded-lg overflow-hidden border border-[#D4AF37]/35 shadow-md group-hover:shadow-xl transition-all duration-500 block bg-[#EFE9DF]"
                   >
                     <img
                       src={resolvedImage}
@@ -203,21 +206,21 @@ export const Home = () => {
                       className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
                       loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#082017]/85 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#082017]/90 via-[#082017]/25 to-transparent" />
 
                     {/* Bottom Card Overlay */}
-                    <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between text-white">
-                      <div>
+                    <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-3 text-white">
+                      <div className="flex-1 min-w-0">
                         <h3 className="font-serif text-2xl font-bold tracking-wider text-white uppercase">
                           {cat.name}
                         </h3>
                         {cat.description && (
-                          <p className="text-[10px] uppercase tracking-[0.25em] text-[#E5C786] font-medium mt-0.5 line-clamp-1 max-w-[220px]">
+                          <p className="text-[10px] uppercase tracking-[0.2em] text-[#E5C786] font-medium mt-0.5 line-clamp-1">
                             {cat.description}
                           </p>
                         )}
                       </div>
-                      <div className="w-9 h-9 rounded-full bg-[#E5C786] text-[#09231A] flex items-center justify-center shadow group-hover:scale-110 transition-transform shrink-0 ml-3">
+                      <div className="w-9 h-9 rounded-full bg-[#E5C786] text-[#09231A] flex items-center justify-center shadow group-hover:scale-110 transition-transform shrink-0">
                         <ArrowRight className="w-4 h-4" />
                       </div>
                     </div>
