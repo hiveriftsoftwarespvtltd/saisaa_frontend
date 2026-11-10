@@ -262,36 +262,28 @@ export const Navbar = () => {
                   {/* Sub-Categories Dropdown Panel */}
                   {hasSubs && isOpen && (
                     <div
-                      className={`absolute left-1/2 -translate-x-1/2 top-full pt-3 z-50 ${
-                        link.subCategories.length >= 4 ? 'w-[410px]' : 'w-64'
-                      }`}
+                      className="absolute left-0 top-full pt-3 z-50 w-64"
                       role="menu"
                       aria-label={`${link.label} subcategories`}
                     >
                       <div className="bg-[#071F17]/98 backdrop-blur-md border border-[#D4AF37]/35 border-t-2 border-t-[#D4AF37] rounded-2xl shadow-[0_24px_60px_rgba(0,0,0,0.55)] overflow-hidden">
                         {/* Dropdown Header */}
-                        <div className="px-5 py-3 bg-[#0A291E]/90 border-b border-[#D4AF37]/20 flex items-center justify-between">
-                          <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#D4AF37]">
-                            Explore {link.label}
+                        <div className="px-4 py-3 bg-[#0A291E]/90 border-b border-[#D4AF37]/20 flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#D4AF37] truncate">
+                            {link.label}
                           </span>
                           <Link
                             to={link.path}
                             onClick={() => setOpenDropdownPath(null)}
-                            className="inline-flex items-center gap-1 text-[11px] font-medium text-[#F7E7BE] hover:text-white transition-colors"
+                            className="inline-flex items-center gap-1 text-[11px] font-medium text-[#F7E7BE] hover:text-white transition-colors shrink-0"
                           >
                             <span>View All</span>
                             <ArrowUpRight className="w-3 h-3 text-[#D4AF37]" />
                           </Link>
                         </div>
 
-                        {/* Sub-Categories Grid */}
-                        <div
-                          className={`p-3 grid ${
-                            link.subCategories.length >= 4
-                              ? 'grid-cols-2 gap-1.5'
-                              : 'grid-cols-1 gap-1'
-                          }`}
-                        >
+                        {/* Sub-Categories Single-Column List */}
+                        <div className="p-2 flex flex-col space-y-1">
                           {link.subCategories.map((sub) => {
                             const isSubActive =
                               location.pathname === link.path &&
