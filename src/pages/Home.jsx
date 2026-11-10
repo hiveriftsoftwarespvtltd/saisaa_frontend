@@ -3,17 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   Crown,
   ArrowRight,
-  Truck,
-  ShieldCheck,
-  Clock,
-  Heart,
-  Eye,
-  ShoppingBag,
-  Send,
-  Feather,
-  Gem,
-  CheckCircle2,
-  Star,
   Award,
 } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
@@ -162,7 +151,7 @@ export const Home = () => {
       {/* ========================================================= */}
       {/* 2. TRINITY ARCHES (CATEGORIES API)                        */}
       {/* ========================================================= */}
-      <section className="relative py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-12 pb-8 lg:pt-16 lg:pb-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Loading Skeleton */}
         {isLoadingCategories ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
@@ -241,81 +230,9 @@ export const Home = () => {
       </section>
 
       {/* ========================================================= */}
-      {/* 3. TRUST BAR (4 GUARANTEES)                               */}
+      {/* 3. FEATURED COLLECTION CAROUSEL (DRIVEN BY CHECKBOX/API)  */}
       {/* ========================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="bg-[#F6EFE3] border border-[#D4AF37]/30 rounded-xl px-6 py-6 sm:py-8 shadow-sm">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
-
-            {/* 1 */}
-            <div className="flex items-center gap-3.5">
-              <div className="text-[#A37F15] shrink-0">
-                <Truck className="w-6 h-6 stroke-[1.5]" />
-              </div>
-              <div className="text-left">
-                <h4 className="text-xs sm:text-sm font-bold text-stone-900 uppercase tracking-wider font-serif">
-                  FREE SHIPPING
-                </h4>
-                <p className="text-[11px] text-stone-600 font-light">
-                  On your favourite styles
-                </p>
-              </div>
-            </div>
-
-            {/* 2 */}
-            <div className="flex items-center gap-3.5">
-              <div className="text-[#A37F15] shrink-0">
-                <ShieldCheck className="w-6 h-6 stroke-[1.5]" />
-              </div>
-              <div className="text-left">
-                <h4 className="text-xs sm:text-sm font-bold text-stone-900 uppercase tracking-wider font-serif">
-                  PREMIUM QUALITY
-                </h4>
-                <p className="text-[11px] text-stone-600 font-light">
-                  Crafted with care
-                </p>
-              </div>
-            </div>
-
-            {/* 3 */}
-            <div className="flex items-center gap-3.5">
-              <div className="text-[#A37F15] shrink-0">
-                <Clock className="w-6 h-6 stroke-[1.5]" />
-              </div>
-              <div className="text-left">
-                <h4 className="text-xs sm:text-sm font-bold text-stone-900 uppercase tracking-wider font-serif">
-                  TIMELESS DESIGNS
-                </h4>
-                <p className="text-[11px] text-stone-600 font-light">
-                  For every occasion
-                </p>
-              </div>
-            </div>
-
-            {/* 4 */}
-            <div className="flex items-center gap-3.5">
-              <div className="text-[#A37F15] shrink-0">
-                <Crown className="w-6 h-6 stroke-[1.5]" />
-              </div>
-              <div className="text-left">
-                <h4 className="text-xs sm:text-sm font-bold text-stone-900 uppercase tracking-wider font-serif">
-                  A MORE BEAUTIFUL YOU
-                </h4>
-                <p className="text-[11px] text-stone-600 font-light">
-                  Everyday
-                </p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================= */}
-      {/* ========================================================= */}
-      {/* 4. FEATURED COLLECTION CAROUSEL (DRIVEN BY CHECKBOX/API)  */}
-      {/* ========================================================= */}
-      <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <section className="pt-4 pb-12 lg:pt-6 lg:pb-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-stone-200/80 pb-6 pr-0 sm:pr-24">
           <div className="text-center sm:text-left space-y-1">
             <div className="flex items-center justify-center sm:justify-start gap-2 text-[#A37F15] text-[11px] font-bold uppercase tracking-[0.25em]">
@@ -346,9 +263,9 @@ export const Home = () => {
       </section>
 
       {/* ========================================================= */}
-      {/* 5. ROYAL BEST SELLERS CAROUSEL (DRIVEN BY CHECKBOX/API)   */}
+      {/* 4. ROYAL BEST SELLERS CAROUSEL (DRIVEN BY CHECKBOX/API)   */}
       {/* ========================================================= */}
-      <section className="py-16 bg-[#F4EFE6]/60 border-y border-[#D4AF37]/20">
+      <section className="py-12 lg:py-14 bg-[#F4EFE6]/60 border-y border-[#D4AF37]/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#D4AF37]/25 pb-6 pr-0 sm:pr-24">
             <div className="text-center sm:text-left space-y-1">
@@ -383,7 +300,7 @@ export const Home = () => {
       {/* ========================================================= */}
       {/* 5. SPLIT EDITORIAL BANNERS (SAREES & KURTIS)              */}
       {/* ========================================================= */}
-      <section className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="pt-12 pb-6 lg:pt-14 lg:pb-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
           {/* Banner 1: Tradition Lives On (Sarees) */}
@@ -454,7 +371,7 @@ export const Home = () => {
       {/* ========================================================= */}
       {/* 6. OUR STORY ("More Than Fashion")                        */}
       {/* ========================================================= */}
-      <section className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="pt-6 pb-12 lg:pt-8 lg:pb-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-[#F8F2E8] rounded-2xl border border-[#D4AF37]/35 shadow-sm p-8 sm:p-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
 
