@@ -90,6 +90,18 @@ export const API_ENDPOINTS = {
     MARQUEE_BY_ID: (id) => `/hero-banners/marquee/${id}`,
   },
 
+  // Dynamic Homepage Content Studio (Editorial Banners & Our Story)
+  CONTENT: {
+    EDITORIAL_BANNERS: '/content/editorial-banners',
+    EDITORIAL_BANNERS_ACTIVE: '/content/editorial-banners?status=Active',
+    EDITORIAL_BANNER_BY_ID: (id) => `/content/editorial-banners/${id}`,
+    EDITORIAL_BANNERS_REORDER: '/content/editorial-banners/reorder',
+    OUR_STORY: '/content/our-story',
+    OUR_STORY_ACTIVE: '/content/our-story?status=Active',
+    OUR_STORY_BY_ID: (id) => `/content/our-story/${id}`,
+    OUR_STORY_REORDER: '/content/our-story/reorder',
+  },
+
   // Patron Reviews & Ratings Engine
   REVIEWS: {
     BASE: '/reviews',

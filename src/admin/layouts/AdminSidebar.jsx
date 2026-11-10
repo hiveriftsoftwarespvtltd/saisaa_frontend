@@ -3,6 +3,7 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Images,
+  LayoutTemplate,
   Package,
   FolderTree,
   Tag,
@@ -43,6 +44,7 @@ export const AdminSidebar = ({ mobileOpen, onCloseMobile }) => {
       title: 'STOREFRONT',
       items: [
         { label: 'Hero Banners', path: '/admin/hero-banners', icon: Images },
+        { label: 'Content', path: '/admin/content', icon: LayoutTemplate },
       ],
     },
     {

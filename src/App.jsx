@@ -38,6 +38,7 @@ import { AdminForgotPassword } from './admin/pages/auth/AdminForgotPassword';
 // Admin Dashboard & Domain Pages
 import { AdminDashboard } from './admin/pages/dashboard/AdminDashboard';
 import { AdminHeroBanners } from './admin/pages/hero/AdminHeroBanners';
+import { AdminContent } from './admin/pages/content/AdminContent';
 import { AdminProducts } from './admin/pages/products/AdminProducts';
 import { AdminProductForm } from './admin/pages/products/AdminProductForm';
 import { AdminCategories } from './admin/pages/categories/AdminCategories';
@@ -133,6 +134,7 @@ export default function App() {
                 <Route index element={<Navigate to="/admin/dashboard" replace />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="hero-banners" element={<AdminHeroBanners />} />
+                <Route path="content" element={<AdminContent />} />
                 <Route path="products" element={<AdminProducts />} />
                 <Route path="products/new" element={<AdminProductForm />} />
                 <Route path="products/:id" element={<AdminProductForm />} />

@@ -62,6 +62,39 @@ const normalizePageHero = (p) => ({
   status: p.status || 'Active',
 });
 
+const normalizeEditorialBanner = (item) => ({
+  ...item,
+  id: item.id || item._id?.toString(),
+  image: item.image || '/images/saree-arch.jpg',
+  eyebrow: item.eyebrow || '',
+  title: item.title || '',
+  description: item.description || '',
+  ctaText: item.ctaText || '',
+  ctaLink: item.ctaLink || '/shop',
+  theme: item.theme || 'ivory',
+  imagePosition: item.imagePosition || 'left',
+  objectPosition: item.objectPosition || 'center top',
+  displayOrder: Number(item.displayOrder ?? 0),
+  status: item.status || 'Active',
+});
+
+const normalizeOurStory = (item) => ({
+  ...item,
+  id: item.id || item._id?.toString(),
+  eyebrow: item.eyebrow || 'OUR STORY',
+  title: item.title || 'More Than Fashion',
+  scriptText: item.scriptText || '',
+  description: item.description || '',
+  ctaText: item.ctaText || 'Our Story',
+  ctaLink: item.ctaLink || '/about',
+  image: item.image || '/images/maroon-story.jpg',
+  objectPosition: item.objectPosition || 'center top',
+  pillars: Array.isArray(item.pillars) ? item.pillars : ['Style', 'Tradition', 'Confidence'],
+  badgeLabel: item.badgeLabel || 'SAISAA HERITAGE',
+  displayOrder: Number(item.displayOrder ?? 0),
+  status: item.status || 'Active',
+});
+
 const normalizeProduct = (p) => {
   const pid = p.customId || p.id || (p._id ? p._id.toString() : '');
   const stockVal = p.stock !== undefined ? Number(p.stock) : 15;
@@ -167,6 +200,8 @@ export const AdminProvider = ({ children }) => {
   const [heroBanners, setHeroBanners] = useState([]);
   const [heroMarquee, setHeroMarquee] = useState([]);
   const [pageHeroes, setPageHeroes] = useState([]);
+  const [editorialBanners, setEditorialBanners] = useState([]);
+  const [ourStories, setOurStories] = useState([]);
 
   // Server Connectivity & Error Tracking
   const [isServerOnline, setIsServerOnline] = useState(true);
@@ -180,6 +215,7 @@ export const AdminProvider = ({ children }) => {
   const [inventoryError, setInventoryError] = useState(null);
   const [inquiryError, setInquiryError] = useState(null);
   const [heroBannerError, setHeroBannerError] = useState(null);
+  const [contentError, setContentError] = useState(null);
   const [isRetryingAll, setIsRetryingAll] = useState(false);
 
   // Loading States
@@ -192,6 +228,7 @@ export const AdminProvider = ({ children }) => {
   const [isLoadingInventory, setIsLoadingInventory] = useState(false);
   const [isLoadingInquiries, setIsLoadingInquiries] = useState(false);
   const [isLoadingHeroBanners, setIsLoadingHeroBanners] = useState(false);
+  const [isLoadingContent, setIsLoadingContent] = useState(false);
 
   // Fetch live products from NestJS Backend
   const fetchProducts = useCallback(async () => {
@@ -449,6 +486,36 @@ export const AdminProvider = ({ children }) => {
     }
   }, []);
 
+  // Fetch live Editorial Banners & Our Story entries from NestJS Backend
+  const fetchContent = useCallback(async () => {
+    try {
+      setIsLoadingContent(true);
+      setContentError(null);
+      const [editorialRes, storyRes] = await Promise.all([
+        apiClient.get(API_ENDPOINTS.CONTENT.EDITORIAL_BANNERS),
+        apiClient.get(API_ENDPOINTS.CONTENT.OUR_STORY),
+      ]);
+      const editorialData = editorialRes?.data || editorialRes;
+      const storyData = storyRes?.data || storyRes;
+      if (Array.isArray(editorialData)) {
+        setEditorialBanners(editorialData.map(normalizeEditorialBanner));
+      } else {
+        setEditorialBanners([]);
+      }
+      if (Array.isArray(storyData)) {
+        setOurStories(storyData.map(normalizeOurStory));
+      } else {
+        setOurStories([]);
+      }
+    } catch (err) {
+      const errMsg = err.message || 'Unable to connect to content studio API';
+      setContentError(errMsg);
+      console.warn('Backend content fetch failed:', errMsg);
+    } finally {
+      setIsLoadingContent(false);
+    }
+  }, []);
+
   // Global Retry All APIs Method
   const retryAll = useCallback(async () => {
     setIsRetryingAll(true);
@@ -462,6 +529,7 @@ export const AdminProvider = ({ children }) => {
     setInventoryError(null);
     setInquiryError(null);
     setHeroBannerError(null);
+    setContentError(null);
     try {
       await Promise.allSettled([
         fetchCategories(),
@@ -473,6 +541,7 @@ export const AdminProvider = ({ children }) => {
         fetchInventory(),
         fetchInquiries(),
         fetchHeroBanners(),
+        fetchContent(),
       ]);
     } finally {
       setIsRetryingAll(false);
@@ -487,6 +556,7 @@ export const AdminProvider = ({ children }) => {
     fetchInventory,
     fetchInquiries,
     fetchHeroBanners,
+    fetchContent,
   ]);
 
   useEffect(() => {
@@ -499,6 +569,7 @@ export const AdminProvider = ({ children }) => {
     fetchInventory();
     fetchInquiries();
     fetchHeroBanners();
+    fetchContent();
   }, [
     fetchCategories,
     fetchProducts,
@@ -509,6 +580,7 @@ export const AdminProvider = ({ children }) => {
     fetchInventory,
     fetchInquiries,
     fetchHeroBanners,
+    fetchContent,
   ]);
 
   const updateCustomer = async (id, updatedFields) => {
@@ -1602,6 +1674,158 @@ export const AdminProvider = ({ children }) => {
     }
   };
 
+  // Editorial Banners CRUD (Split Editorial Section on Homepage)
+  const addEditorialBanner = async (bannerData) => {
+    try {
+      const res = await apiClient.post(API_ENDPOINTS.CONTENT.EDITORIAL_BANNERS, bannerData);
+      const created = normalizeEditorialBanner(res?.data || bannerData);
+      setEditorialBanners((prev) =>
+        [...prev, created].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+      );
+      showAdminToast('Editorial banner created successfully', 'success');
+      return created;
+    } catch (err) {
+      showAdminToast(err.message || 'Failed to create editorial banner', 'error');
+      throw err;
+    }
+  };
+
+  const updateEditorialBanner = async (id, fields) => {
+    try {
+      const res = await apiClient.put(
+        API_ENDPOINTS.CONTENT.EDITORIAL_BANNER_BY_ID(id),
+        fields
+      );
+      const updated = res?.data ? normalizeEditorialBanner(res.data) : null;
+      setEditorialBanners((prev) =>
+        prev
+          .map((item) =>
+            item.id === id || item._id === id
+              ? { ...item, ...fields, ...(updated || {}) }
+              : item
+          )
+          .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+      );
+      showAdminToast('Editorial banner updated successfully', 'success');
+      return updated;
+    } catch (err) {
+      showAdminToast(err.message || 'Failed to update editorial banner', 'error');
+      throw err;
+    }
+  };
+
+  const deleteEditorialBanner = async (id) => {
+    try {
+      await apiClient.delete(API_ENDPOINTS.CONTENT.EDITORIAL_BANNER_BY_ID(id));
+      setEditorialBanners((prev) => prev.filter((item) => item.id !== id && item._id !== id));
+      showAdminToast('Editorial banner deleted successfully', 'info');
+    } catch (err) {
+      showAdminToast(err.message || 'Failed to delete editorial banner', 'error');
+      throw err;
+    }
+  };
+
+  const reorderEditorialBanners = async (orderedIds) => {
+    try {
+      const orderMap = new Map(orderedIds.map((id, idx) => [id, idx + 1]));
+      setEditorialBanners((prev) =>
+        [...prev]
+          .map((item) => ({
+            ...item,
+            displayOrder: orderMap.get(item.id) ?? item.displayOrder,
+          }))
+          .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+      );
+
+      const res = await apiClient.patch(API_ENDPOINTS.CONTENT.EDITORIAL_BANNERS_REORDER, {
+        orderedIds,
+      });
+      if (Array.isArray(res?.data)) {
+        setEditorialBanners(res.data.map(normalizeEditorialBanner));
+      }
+      showAdminToast('Editorial banner display order saved', 'success');
+    } catch (err) {
+      showAdminToast(err.message || 'Failed to reorder editorial banners', 'error');
+      fetchContent();
+    }
+  };
+
+  // Our Story Section CRUD
+  const addOurStory = async (storyData) => {
+    try {
+      const res = await apiClient.post(API_ENDPOINTS.CONTENT.OUR_STORY, storyData);
+      const created = normalizeOurStory(res?.data || storyData);
+      setOurStories((prev) =>
+        [...prev, created].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+      );
+      showAdminToast('Story showcase entry created successfully', 'success');
+      return created;
+    } catch (err) {
+      showAdminToast(err.message || 'Failed to create story entry', 'error');
+      throw err;
+    }
+  };
+
+  const updateOurStory = async (id, fields) => {
+    try {
+      const res = await apiClient.put(
+        API_ENDPOINTS.CONTENT.OUR_STORY_BY_ID(id),
+        fields
+      );
+      const updated = res?.data ? normalizeOurStory(res.data) : null;
+      setOurStories((prev) =>
+        prev
+          .map((item) =>
+            item.id === id || item._id === id
+              ? { ...item, ...fields, ...(updated || {}) }
+              : item
+          )
+          .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+      );
+      showAdminToast('Our Story section updated successfully', 'success');
+      return updated;
+    } catch (err) {
+      showAdminToast(err.message || 'Failed to update story section', 'error');
+      throw err;
+    }
+  };
+
+  const deleteOurStory = async (id) => {
+    try {
+      await apiClient.delete(API_ENDPOINTS.CONTENT.OUR_STORY_BY_ID(id));
+      setOurStories((prev) => prev.filter((item) => item.id !== id && item._id !== id));
+      showAdminToast('Story showcase entry deleted successfully', 'info');
+    } catch (err) {
+      showAdminToast(err.message || 'Failed to delete story entry', 'error');
+      throw err;
+    }
+  };
+
+  const reorderOurStories = async (orderedIds) => {
+    try {
+      const orderMap = new Map(orderedIds.map((id, idx) => [id, idx + 1]));
+      setOurStories((prev) =>
+        [...prev]
+          .map((item) => ({
+            ...item,
+            displayOrder: orderMap.get(item.id) ?? item.displayOrder,
+          }))
+          .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+      );
+
+      const res = await apiClient.patch(API_ENDPOINTS.CONTENT.OUR_STORY_REORDER, {
+        orderedIds,
+      });
+      if (Array.isArray(res?.data)) {
+        setOurStories(res.data.map(normalizeOurStory));
+      }
+      showAdminToast('Story display order saved', 'success');
+    } catch (err) {
+      showAdminToast(err.message || 'Failed to reorder stories', 'error');
+      fetchContent();
+    }
+  };
+
   return (
     <AdminContext.Provider
       value={{
@@ -1676,6 +1900,19 @@ export const AdminProvider = ({ children }) => {
         updateHeroMarquee,
         deleteHeroMarquee,
         updatePageHero,
+        editorialBanners,
+        ourStories,
+        isLoadingContent,
+        contentError,
+        refreshContent: fetchContent,
+        addEditorialBanner,
+        updateEditorialBanner,
+        deleteEditorialBanner,
+        reorderEditorialBanners,
+        addOurStory,
+        updateOurStory,
+        deleteOurStory,
+        reorderOurStories,
         returns,
         updateReturnStatus,
         payments,

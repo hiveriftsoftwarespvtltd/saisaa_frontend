@@ -12,6 +12,66 @@ import { QuickViewModal } from '../components/QuickViewModal';
 import { useToast } from '../context/ToastContext';
 import { apiClient, API_ENDPOINTS, API_BASE_URL } from '../config';
 
+const DEFAULT_EDITORIAL_BANNERS = [
+  {
+    id: 'default-editorial-1',
+    image: '/images/saree-arch.jpg',
+    eyebrow: 'HERITAGE DRAPES',
+    title: 'Tradition Lives On',
+    description:
+      'Graceful drapes for unforgettable moments. Our sarees celebrate timeless beauty, zari craftsmanship, and modern womanhood.',
+    ctaText: 'Explore Sarees',
+    ctaLink: '/sarees',
+    theme: 'ivory',
+    imagePosition: 'left',
+    objectPosition: 'center top',
+    status: 'Active',
+  },
+  {
+    id: 'default-editorial-2',
+    image: '/images/pink-kurti.jpg',
+    eyebrow: 'DAILY COUTURE',
+    title: 'Everyday Elegance',
+    description:
+      'Tailored kurtis & stitched suits crafted for effortless grace, breathable comfort, and refined everyday celebrations.',
+    ctaText: 'Explore Stitched Suits',
+    ctaLink: '/stitched-suits',
+    theme: 'emerald',
+    imagePosition: 'right',
+    objectPosition: 'center top',
+    status: 'Active',
+  },
+];
+
+const DEFAULT_OUR_STORY = [
+  {
+    id: 'default-story-1',
+    eyebrow: 'OUR STORY',
+    title: 'More Than Fashion',
+    scriptText: 'Traditional • Beautiful • You',
+    description:
+      "At Saisaa, we celebrate the timeless beauty of Indian heritage with contemporary designs for today's woman. Our collections are crafted to bring elegance, tradition, and lasting confidence into your everyday moments.",
+    ctaText: 'Our Story',
+    ctaLink: '/about',
+    image: '/images/maroon-story.jpg',
+    objectPosition: 'center top',
+    pillars: ['Style', 'Tradition', 'Confidence'],
+    badgeLabel: 'SAISAA HERITAGE',
+    status: 'Active',
+  },
+];
+
+const resolveMediaUrl = (raw, fallback = '/images/saree-arch.jpg') => {
+  if (!raw) return fallback;
+  const normalized = raw.startsWith('http://api.saisaa.com/')
+    ? raw.replace('http://api.saisaa.com/', 'https://api.saisaa.com/')
+    : raw;
+  if (normalized.startsWith('/uploads/')) {
+    return `${API_BASE_URL.replace(/\/api\/v1\/?$/, '')}${normalized}`;
+  }
+  return normalized;
+};
+
 export const Home = () => {
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [newsletterEmail, setNewsletterEmail] = useState('');
@@ -19,6 +79,8 @@ export const Home = () => {
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [categories, setCategories] = useState([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [editorialBanners, setEditorialBanners] = useState(DEFAULT_EDITORIAL_BANNERS);
+  const [ourStories, setOurStories] = useState(DEFAULT_OUR_STORY);
 
   const { addToast } = useToast();
 
@@ -96,6 +158,43 @@ export const Home = () => {
     };
 
     fetchStorefrontProducts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Fetch dynamic Editorial Banners & Our Story content from Admin Content Studio API
+  useEffect(() => {
+    let isMounted = true;
+    const fetchHomepageContent = async () => {
+      try {
+        const [editorialRes, storyRes] = await Promise.all([
+          apiClient.get(API_ENDPOINTS.CONTENT.EDITORIAL_BANNERS_ACTIVE),
+          apiClient.get(API_ENDPOINTS.CONTENT.OUR_STORY_ACTIVE),
+        ]);
+        const editorialItems = editorialRes?.data || editorialRes;
+        const storyItems = storyRes?.data || storyRes;
+
+        if (isMounted && Array.isArray(editorialItems)) {
+          setEditorialBanners(
+            editorialItems
+              .filter((b) => !b.status || b.status === 'Active')
+              .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+          );
+        }
+        if (isMounted && Array.isArray(storyItems)) {
+          setOurStories(
+            storyItems
+              .filter((s) => !s.status || s.status === 'Active')
+              .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+          );
+        }
+      } catch (err) {
+        console.warn('Home page using fallback editorial/story content:', err.message);
+      }
+    };
+
+    fetchHomepageContent();
     return () => {
       isMounted = false;
     };
@@ -448,142 +547,237 @@ export const Home = () => {
       </section>
 
       {/* ========================================================= */}
-      {/* 5. SPLIT EDITORIAL BANNERS (SAREES & KURTIS)              */}
+      {/* 5. SPLIT EDITORIAL SHOWCASE (CURATED ATELIER EDITS)       */}
       {/* ========================================================= */}
-      <section className="pt-12 pb-6 lg:pt-14 lg:pb-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-          {/* Banner 1: Tradition Lives On (Sarees) */}
-          <div className="bg-[#F7EFE6] rounded-2xl overflow-hidden border border-[#D4AF37]/30 shadow-sm grid grid-cols-1 sm:grid-cols-12 items-center">
-            {/* Left Photo */}
-            <div className="sm:col-span-6 h-72 sm:h-96 overflow-hidden">
-              <img
-                src="/images/12_category_sarees.jpg"
-                alt="Tradition Lives On Sarees"
-                className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-700"
-              />
-            </div>
-            {/* Right Text */}
-            <div className="sm:col-span-6 p-6 sm:p-8 space-y-4 text-left">
-              <h3 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900 leading-tight">
-                Tradition <br />
-                Lives On
-              </h3>
-              <p className="text-xs text-stone-600 leading-relaxed font-light">
-                Graceful drapes for unforgettable moments. Our sarees celebrate timeless beauty and modern womanhood.
-              </p>
-              <div className="pt-2">
-                <Link
-                  to="/sarees"
-                  className="inline-flex items-center gap-2 bg-[#E5C786] hover:bg-[#F3DC9B] text-[#09231A] text-[11px] font-bold uppercase tracking-wider py-2.5 px-5 rounded shadow-sm transition-all"
-                >
-                  <span>EXPLORE SAREES</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Banner 2: Everyday Elegance (Stitched Suits) */}
-          <div className="bg-[#FBEAE3] rounded-2xl overflow-hidden border border-[#D4AF37]/30 shadow-sm grid grid-cols-1 sm:grid-cols-12 items-center">
-            {/* Left Text */}
-            <div className="sm:col-span-6 p-6 sm:p-8 space-y-4 text-left order-2 sm:order-1">
-              <h3 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900 leading-tight">
-                Everyday <br />
-                Elegance
-              </h3>
-              <p className="text-xs text-stone-600 leading-relaxed font-light">
-                Tailored kurtis & stitched suits crafted for effortless grace and everyday celebrations.
-              </p>
-              <div className="pt-2">
-                <Link
-                  to="/stitched-suits"
-                  className="inline-flex items-center gap-2 bg-[#E5C786] hover:bg-[#F3DC9B] text-[#09231A] text-[11px] font-bold uppercase tracking-wider py-2.5 px-5 rounded shadow-sm transition-all"
-                >
-                  <span>EXPLORE STITCHED SUITS</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            </div>
-            {/* Right Photo */}
-            <div className="sm:col-span-6 h-72 sm:h-96 overflow-hidden order-1 sm:order-2">
-              <img
-                src="/images/11_category_kurtis.jpg"
-                alt="Everyday Elegance Stitched Suits"
-                className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-700"
-              />
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* ========================================================= */}
-      {/* 6. OUR STORY ("More Than Fashion")                        */}
-      {/* ========================================================= */}
-      <section className="pt-6 pb-12 lg:pt-8 lg:pb-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-[#F8F2E8] rounded-2xl border border-[#D4AF37]/35 shadow-sm p-8 sm:p-12">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-
-            {/* Left Narrative */}
-            <div className="lg:col-span-5 space-y-4 text-left">
-              <span className="text-[10px] uppercase tracking-[0.25em] text-[#A37F15] font-semibold">
-                OUR STORY
+      {editorialBanners.length > 0 && (
+        <section className="pt-12 pb-6 lg:pt-16 lg:pb-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <div className="flex items-center justify-between gap-4 border-b border-[#D4AF37]/25 pb-4">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-[0.26em] text-[#9A7611] block">
+                Atelier Editions
               </span>
-              <h2 className="font-serif text-3xl sm:text-4xl font-bold text-stone-900 leading-tight">
-                More Than Fashion
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#09231A] tracking-tight mt-0.5">
+                Signature Style Narratives
               </h2>
-              <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-light">
-                At Saisaa, we celebrate the timeless beauty of Indian heritage with contemporary designs for today's woman. Our collections are crafted to bring elegance, tradition and comfort into your everyday moments.
-              </p>
-              <div className="pt-2">
-                <Link
-                  to="/about"
-                  className="inline-flex items-center gap-2 bg-[#E5C786] hover:bg-[#F3DC9B] text-[#09231A] text-[11px] font-bold uppercase tracking-wider py-2.5 px-6 rounded shadow-sm transition-all"
-                >
-                  <span>OUR STORY</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
             </div>
-
-            {/* Center Decorative Calligraphy */}
-            <div className="lg:col-span-3 hidden lg:flex flex-col items-center justify-center text-center space-y-1 text-[#A37F15]">
-              <div className="w-8 h-8 rounded-full border border-[#D4AF37]/40 flex items-center justify-center mb-1">
-                <Crown className="w-4 h-4 text-[#D4AF37]" />
-              </div>
-              <span className="font-script text-3xl sm:text-4xl text-[#A37F15]/90">
-                Traditional
-              </span>
-              <span className="font-script text-3xl sm:text-4xl text-[#A37F15]/90">
-                Beautiful
-              </span>
-              <span className="font-script text-3xl sm:text-4xl text-[#A37F15]/90">
-                You
-              </span>
+            <div className="hidden sm:flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-[#9A7611] font-semibold">
+              <span className="h-px w-10 bg-[#D4AF37]/55" />
+              <Crown className="w-3.5 h-3.5 text-[#D4AF37]" />
             </div>
-
-            {/* Right Photo with Typography Accents */}
-            <div className="lg:col-span-4 flex items-center justify-center gap-4">
-              <div className="relative w-full max-w-xs aspect-[3/4] rounded-xl overflow-hidden shadow-md border border-[#D4AF37]/40">
-                <img
-                  src="/images/maroon-story.jpg"
-                  alt="Saisaa - Style, Tradition, Confidence"
-                  className="w-full h-full object-cover object-top"
-                />
-              </div>
-
-              {/* Vertical stacked words */}
-              <div className="hidden sm:flex flex-col justify-center space-y-2 text-left font-serif text-sm tracking-wider text-stone-700">
-                <span className="font-medium text-stone-800">Style</span>
-                <span className="font-medium text-stone-800">Tradition</span>
-                <span className="font-medium text-stone-800">Confidence</span>
-              </div>
-            </div>
-
           </div>
-        </div>
-      </section>
+
+          <div
+            className={`grid grid-cols-1 ${
+              editorialBanners.length === 1
+                ? 'max-w-3xl mx-auto'
+                : 'lg:grid-cols-2'
+            } gap-6 lg:gap-8`}
+          >
+            {editorialBanners.map((banner, idx) => {
+              const isEmerald = banner.theme === 'emerald';
+              const isBlush = banner.theme === 'blush';
+              const cardThemeClass = isEmerald
+                ? 'bg-[#09231A] border-[#D4AF37]/50 text-[#FAF7F2]'
+                : isBlush
+                ? 'bg-[#F8EAE3] border-[#D4AF37]/40 text-[#09231A]'
+                : 'bg-[#F7F0E3] border-[#D4AF37]/45 text-[#09231A]';
+              const eyebrowColorClass = isEmerald ? 'text-[#E5C786]' : 'text-[#9A7611]';
+              const descColorClass = isEmerald ? 'text-[#F7E7BE]/85' : 'text-stone-600';
+              const ctaClass = isEmerald
+                ? 'bg-gradient-to-r from-[#D4AF37] to-[#E5C786] hover:from-[#F3DC9B] hover:to-[#F7E7BE] text-[#09231A]'
+                : 'bg-[#09231A] hover:bg-[#123D2E] text-[#F7E7BE]';
+              const photoOnRight = banner.imagePosition === 'right';
+              const imgSrc = resolveMediaUrl(banner.image, '/images/saree-arch.jpg');
+
+              return (
+                <article
+                  key={banner.id || banner._id || idx}
+                  className={`group relative rounded-2xl overflow-hidden border shadow-md hover:shadow-xl transition-all duration-500 grid grid-cols-1 sm:grid-cols-12 items-stretch sm:min-h-[370px] ${cardThemeClass}`}
+                >
+                  {/* Portrait Photo Pane */}
+                  <div
+                    className={`sm:col-span-6 relative h-72 sm:h-auto overflow-hidden order-1 ${
+                      photoOnRight ? 'sm:order-2' : 'sm:order-1'
+                    }`}
+                  >
+                    <img
+                      src={imgSrc}
+                      alt={banner.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      style={{ objectPosition: banner.objectPosition || 'center top' }}
+                      loading="lazy"
+                    />
+                    <div className="pointer-events-none absolute inset-3 rounded-xl border border-[#D4AF37]/30 hidden sm:block" />
+                    <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-[#09231A]/75 backdrop-blur-xs border border-[#D4AF37]/45 text-[#F7E7BE] text-[10px] font-mono font-bold">
+                      {String(idx + 1).padStart(2, '0')}
+                    </span>
+                  </div>
+
+                  {/* Narrative Content Pane */}
+                  <div
+                    className={`sm:col-span-6 p-6 sm:p-8 flex flex-col justify-center gap-3.5 text-left order-2 ${
+                      photoOnRight ? 'sm:order-1' : 'sm:order-2'
+                    }`}
+                  >
+                    {banner.eyebrow && (
+                      <div className="flex items-center gap-2">
+                        <span className={`w-5 h-px ${isEmerald ? 'bg-[#D4AF37]' : 'bg-[#9A7611]/70'}`} />
+                        <span className={`text-[10px] font-bold uppercase tracking-[0.26em] ${eyebrowColorClass}`}>
+                          {banner.eyebrow}
+                        </span>
+                      </div>
+                    )}
+
+                    <h3 className="font-serif text-2xl sm:text-3xl font-bold leading-[1.15] tracking-tight">
+                      {banner.title}
+                    </h3>
+
+                    {banner.description && (
+                      <p className={`text-xs sm:text-[13px] leading-relaxed font-light ${descColorClass}`}>
+                        {banner.description}
+                      </p>
+                    )}
+
+                    {banner.ctaText && (
+                      <div className="pt-1">
+                        <Link
+                          to={banner.ctaLink || '/shop'}
+                          className={`inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] py-2.5 px-5 rounded-full shadow-sm transition-all group/cta ${ctaClass}`}
+                        >
+                          <span>{banner.ctaText}</span>
+                          <ArrowRight className="w-3.5 h-3.5 group-hover/cta:translate-x-1 transition-transform" />
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ========================================================= */}
+      {/* 6. OUR STORY ("More Than Fashion") — HERITAGE CHRONICLE   */}
+      {/* ========================================================= */}
+      {ourStories.length > 0 && (() => {
+        const story = ourStories[0];
+        const pillars =
+          Array.isArray(story.pillars) && story.pillars.length > 0
+            ? story.pillars
+            : ['Style', 'Tradition', 'Confidence'];
+        const storyImgSrc = resolveMediaUrl(story.image, '/images/maroon-story.jpg');
+
+        return (
+          <section className="pt-6 pb-14 lg:pt-8 lg:pb-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="relative rounded-2xl sm:rounded-3xl bg-[#F6EEE0] border border-[#D4AF37]/45 shadow-md overflow-hidden">
+              {/* Subtle Ambient Gold Glow & Architectural Inner Hairline Frame */}
+              <div
+                className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_left,_rgba(212,175,55,0.12),_transparent_55%)]"
+                aria-hidden="true"
+              />
+              <div
+                className="pointer-events-none absolute inset-3 sm:inset-4 rounded-xl sm:rounded-2xl border border-[#D4AF37]/25"
+                aria-hidden="true"
+              />
+
+              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center p-6 sm:p-10 lg:p-14">
+                {/* Left Column: Brand Chronicle, Script Accent, Pillars & CTA */}
+                <div className="lg:col-span-6 space-y-5 text-left">
+                  {story.eyebrow && (
+                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/85 border border-[#D4AF37]/45 text-[10px] font-bold uppercase tracking-[0.26em] text-[#9A7611] shadow-2xs">
+                      <Crown className="w-3 h-3 text-[#D4AF37]" />
+                      <span>{story.eyebrow}</span>
+                    </span>
+                  )}
+
+                  <div className="space-y-2">
+                    <h2 className="font-serif text-3xl sm:text-4xl lg:text-[42px] font-bold text-[#09231A] leading-[1.12] tracking-tight">
+                      {story.title}
+                    </h2>
+
+                    {story.scriptText && (
+                      <div className="flex items-center gap-3 pt-0.5">
+                        <span className="h-px w-8 bg-gradient-to-r from-[#D4AF37] to-transparent shrink-0" />
+                        <p className="font-script text-2xl sm:text-3xl text-[#A37F15] leading-snug">
+                          {story.scriptText}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {story.description && (
+                    <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-light max-w-xl">
+                      {story.description}
+                    </p>
+                  )}
+
+                  {/* Heritage Value Pillar Seals */}
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    {pillars.map((pillar, pIdx) => (
+                      <span
+                        key={`${pillar}-${pIdx}`}
+                        className="px-3.5 py-1.5 rounded-full bg-white/85 border border-[#D4AF37]/40 text-[11px] font-serif font-semibold tracking-wide text-[#09231A] shadow-2xs"
+                      >
+                        {pillar}
+                      </span>
+                    ))}
+                  </div>
+
+                  {story.ctaText && (
+                    <div className="pt-2">
+                      <Link
+                        to={story.ctaLink || '/about'}
+                        className="inline-flex items-center gap-2.5 bg-[#09231A] hover:bg-[#123D2E] text-[#F7E7BE] text-[11px] font-bold uppercase tracking-[0.18em] py-3.5 px-7 rounded-full shadow-md transition-all group/story"
+                      >
+                        <span>{story.ctaText}</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover/story:translate-x-1 transition-transform text-[#D4AF37]" />
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right Column: Framed Editorial Portrait + Glass Crest */}
+                <div className="lg:col-span-6 flex justify-center lg:justify-end">
+                  <div className="relative w-full max-w-md">
+                    <div
+                      className="hidden sm:block absolute -inset-2.5 rounded-2xl border border-[#D4AF37]/35 pointer-events-none"
+                      aria-hidden="true"
+                    />
+                    <div className="relative aspect-[4/4.6] rounded-2xl overflow-hidden border border-[#D4AF37]/50 shadow-xl bg-[#EFE6D8]">
+                      <img
+                        src={storyImgSrc}
+                        alt={story.title || 'Saisaa Heritage'}
+                        className="w-full h-full object-cover"
+                        style={{ objectPosition: story.objectPosition || 'center top' }}
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#09231A]/75 via-[#09231A]/10 to-transparent pointer-events-none" />
+
+                      {/* Integrated Glass Atelier Crest Card */}
+                      <div className="absolute bottom-3.5 left-3.5 right-3.5 sm:bottom-4 sm:left-4 sm:right-4 bg-[#09231A]/85 backdrop-blur-md border border-[#D4AF37]/45 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          {story.badgeLabel && (
+                            <span className="block text-[9px] font-bold uppercase tracking-[0.22em] text-[#E5C786]">
+                              {story.badgeLabel}
+                            </span>
+                          )}
+                          <p className="font-serif text-xs sm:text-sm font-semibold text-[#FAF7F2] truncate">
+                            {pillars.join(' • ')}
+                          </p>
+                        </div>
+                        <div className="w-8 h-8 rounded-full border border-[#D4AF37]/50 bg-[#123D2E] flex items-center justify-center shrink-0">
+                          <Crown className="w-4 h-4 text-[#D4AF37]" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* ========================================================= */}
       {/* 7. NEWSLETTER SECTION ("Be the First to Know")             */}
