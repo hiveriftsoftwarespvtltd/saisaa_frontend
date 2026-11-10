@@ -7,11 +7,8 @@ import {
 } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
 import { ProductCard } from '../components/ProductCard';
-import { ProductCarousel } from '../components/ProductCarousel';
 import { HeroSlideshow } from '../components/HeroSlideshow';
 import { QuickViewModal } from '../components/QuickViewModal';
-import { useWishlist } from '../context/WishlistContext';
-import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { apiClient, API_ENDPOINTS, API_BASE_URL } from '../config';
 
@@ -23,8 +20,6 @@ export const Home = () => {
   const [categories, setCategories] = useState([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
-  const { isInWishlist, toggleWishlist } = useWishlist();
-  const { addToCart } = useCart();
   const { addToast } = useToast();
 
   // Fetch categories directly from backend API
@@ -233,16 +228,16 @@ export const Home = () => {
       </section>
 
       {/* ========================================================= */}
-      {/* 3. FEATURED COLLECTION CAROUSEL (DRIVEN BY CHECKBOX/API)  */}
+      {/* 3. FEATURED COLLECTION SHOWCASE (DIRECT EDITORIAL GRID)   */}
       {/* ========================================================= */}
-      <section className="pt-4 pb-12 lg:pt-6 lg:pb-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-stone-200/80 pb-6 pr-0 sm:pr-24">
-          <div className="text-center sm:text-left space-y-1">
-            <div className="flex items-center justify-center sm:justify-start gap-2 text-[#A37F15] text-[11px] font-bold uppercase tracking-[0.25em]">
-              <Crown className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>HANDPICKED SHOWCASE</span>
-            </div>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#1E2922] tracking-tight">
+      <section className="pt-8 pb-14 lg:pt-10 lg:pb-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4 border-b border-[#D4AF37]/25 pb-6">
+          <div className="text-center sm:text-left space-y-2">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F6EFE3] border border-[#D4AF37]/40 text-[#9B7B1C] text-[10px] font-bold uppercase tracking-[0.25em]">
+              <Crown className="w-3 h-3 text-[#D4AF37]" />
+              <span>Handpicked Atelier Edit</span>
+            </span>
+            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#09231A] tracking-tight">
               Featured Collection
             </h2>
             <p className="text-xs sm:text-sm text-stone-500 font-light italic">
@@ -252,51 +247,172 @@ export const Home = () => {
 
           <Link
             to="/shop"
-            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#0A291E] hover:text-[#D4AF37] transition-colors group"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-[#09231A]/25 hover:bg-[#09231A] hover:text-[#F7E7BE] hover:border-[#09231A] text-xs font-bold uppercase tracking-widest text-[#09231A] transition-all group shrink-0"
           >
             <span>View All Pieces</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
-        <ProductCarousel
-          products={featuredProducts}
-          onQuickView={(p) => setQuickViewProduct(p)}
-        />
+        {isLoadingProducts ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7">
+            {[1, 2, 3].map((n) => (
+              <div
+                key={n}
+                className="bg-white rounded-2xl overflow-hidden border border-[#E6DEC8] p-3 space-y-3"
+              >
+                <div className="aspect-[4/4.6] bg-stone-200/60 rounded-xl animate-pulse" />
+                <div className="h-4 w-3/4 bg-stone-200/70 rounded animate-pulse" />
+                <div className="h-3 w-1/2 bg-stone-200/50 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+        ) : featuredProducts.length > 0 ? (
+          (() => {
+            const useSpotlight =
+              featuredProducts.length === 1 ||
+              featuredProducts.length === 5 ||
+              featuredProducts.length === 7;
+            const leadFeatured = useSpotlight ? featuredProducts[0] : null;
+            const gridFeatured = useSpotlight
+              ? featuredProducts.slice(1)
+              : featuredProducts;
+            const gridColsClass =
+              gridFeatured.length === 2
+                ? 'sm:grid-cols-2 max-w-4xl mx-auto'
+                : gridFeatured.length === 3 || gridFeatured.length === 6
+                ? 'sm:grid-cols-2 lg:grid-cols-3'
+                : 'sm:grid-cols-2 lg:grid-cols-4';
+
+            return (
+              <div className="space-y-6 lg:space-y-7">
+                {leadFeatured && (
+                  <ProductCard
+                    key={leadFeatured.id || leadFeatured._id}
+                    product={leadFeatured}
+                    variant="atelier-spotlight"
+                    onQuickView={(p) => setQuickViewProduct(p)}
+                  />
+                )}
+                {gridFeatured.length > 0 && (
+                  <div className={`grid grid-cols-1 ${gridColsClass} gap-6 lg:gap-7`}>
+                    {gridFeatured.map((product) => (
+                      <ProductCard
+                        key={product.id || product._id}
+                        product={product}
+                        variant="atelier"
+                        onQuickView={(p) => setQuickViewProduct(p)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()
+        ) : (
+          <div className="py-12 text-center text-stone-400 text-xs italic">
+            No products available in this showcase.
+          </div>
+        )}
       </section>
 
       {/* ========================================================= */}
-      {/* 4. ROYAL BEST SELLERS CAROUSEL (DRIVEN BY CHECKBOX/API)   */}
+      {/* 4. ROYAL BEST SELLERS SANCTUARY (DEEP EMERALD DIRECT GRID) */}
       {/* ========================================================= */}
-      <section className="py-12 lg:py-14 bg-[#F4EFE6]/60 border-y border-[#D4AF37]/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#D4AF37]/25 pb-6 pr-0 sm:pr-24">
-            <div className="text-center sm:text-left space-y-1">
-              <div className="flex items-center justify-center sm:justify-start gap-2 text-[#A37F15] text-[11px] font-bold uppercase tracking-[0.25em]">
-                <Award className="w-3.5 h-3.5 text-[#D4AF37]" />
-                <span>PATRON FAVOURITES</span>
+      <section className="relative py-14 lg:py-20 bg-[#09231A] text-[#FAF7F2] border-y border-[#D4AF37]/35 overflow-hidden">
+        {/* Subtle Top Golden Radial Glow */}
+        <div
+          className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,_rgba(212,175,55,0.14),_transparent_65%)]"
+          aria-hidden="true"
+        />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+          <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4 border-b border-[#D4AF37]/25 pb-6">
+            <div className="text-center sm:text-left space-y-2">
+              <div className="flex items-center justify-center sm:justify-start gap-2 text-[#D4AF37] text-[11px] font-bold uppercase tracking-[0.28em]">
+                <Award className="w-4 h-4 text-[#D4AF37]" />
+                <span>Patron Favourites • Royal Archive</span>
               </div>
-              <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#0A291E] tracking-tight">
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-[42px] font-bold text-[#FAF7F2] tracking-tight">
                 Royal Best Sellers
               </h2>
-              <p className="text-xs sm:text-sm text-stone-600 font-light italic">
+              <p className="text-xs sm:text-sm text-[#F7E7BE]/75 font-light italic">
                 Our most coveted, highest-rated artisanal heirlooms
               </p>
             </div>
 
             <Link
               to="/shop?tag=bestseller"
-              className="inline-flex items-center gap-2 bg-[#0A261C] hover:bg-[#123D2E] text-[#F7E7BE] text-xs font-bold uppercase tracking-[0.15em] py-2.5 px-5 rounded shadow-sm transition-all"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#D4AF37] to-[#E5C786] hover:from-[#F3DC9B] hover:to-[#F7E7BE] text-[#09231A] text-xs font-extrabold uppercase tracking-[0.16em] py-3 px-6 rounded-full shadow-[0_8px_24px_rgba(212,175,55,0.28)] transition-all group shrink-0"
             >
               <span>Explore Best Sellers</span>
-              <ArrowRight className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
-          <ProductCarousel
-            products={bestSellerProducts}
-            onQuickView={(p) => setQuickViewProduct(p)}
-          />
+          {isLoadingProducts ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7">
+              {[1, 2, 3].map((n) => (
+                <div
+                  key={n}
+                  className="bg-[#0E2F23] rounded-2xl overflow-hidden border border-[#D4AF37]/25 p-3 space-y-3"
+                >
+                  <div className="aspect-[4/4.6] bg-[#071F17] rounded-xl animate-pulse" />
+                  <div className="h-4 w-3/4 bg-white/10 rounded animate-pulse" />
+                  <div className="h-3 w-1/2 bg-white/10 rounded animate-pulse" />
+                </div>
+              ))}
+            </div>
+          ) : bestSellerProducts.length > 0 ? (
+            (() => {
+              const useSpotlight =
+                bestSellerProducts.length === 1 ||
+                bestSellerProducts.length === 5 ||
+                bestSellerProducts.length === 7;
+              const leadRoyal = useSpotlight ? bestSellerProducts[0] : null;
+              const gridRoyal = useSpotlight
+                ? bestSellerProducts.slice(1)
+                : bestSellerProducts;
+              const rankOffset = useSpotlight ? 2 : 1;
+              const gridColsClass =
+                gridRoyal.length === 2
+                  ? 'sm:grid-cols-2 max-w-4xl mx-auto'
+                  : gridRoyal.length === 3 || gridRoyal.length === 6
+                  ? 'sm:grid-cols-2 lg:grid-cols-3'
+                  : 'sm:grid-cols-2 lg:grid-cols-4';
+
+              return (
+                <div className="space-y-6 lg:space-y-7">
+                  {leadRoyal && (
+                    <ProductCard
+                      key={leadRoyal.id || leadRoyal._id}
+                      product={leadRoyal}
+                      variant="royal-spotlight"
+                      rank={1}
+                      onQuickView={(p) => setQuickViewProduct(p)}
+                    />
+                  )}
+                  {gridRoyal.length > 0 && (
+                    <div className={`grid grid-cols-1 ${gridColsClass} gap-6 lg:gap-7`}>
+                      {gridRoyal.map((product, idx) => (
+                        <ProductCard
+                          key={product.id || product._id}
+                          product={product}
+                          variant="royal"
+                          rank={rankOffset + idx}
+                          onQuickView={(p) => setQuickViewProduct(p)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()
+          ) : (
+            <div className="py-12 text-center text-[#F7E7BE]/60 text-xs italic">
+              No products available in this showcase.
+            </div>
+          )}
         </div>
       </section>
 
