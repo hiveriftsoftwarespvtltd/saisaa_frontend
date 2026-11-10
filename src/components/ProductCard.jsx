@@ -1,8 +1,161 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Heart, ShoppingBag, Eye, Star, Crown } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Heart, ShoppingBag, Eye, Star, Crown, Minus, Plus, Zap } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
+
+const CardActionButtons = ({
+  product,
+  cartQty,
+  onAdd,
+  onDecrease,
+  onIncrease,
+  onBuyNow,
+  theme = 'light',
+  pill = false,
+}) => {
+  const isRoyal = theme === 'royal';
+  const radiusClass = pill ? 'rounded-full' : 'rounded-xl';
+
+  return (
+    <div className="@container w-full">
+      <div className="grid grid-cols-1 @[205px]:grid-cols-2 gap-2">
+        {cartQty > 0 ? (
+          <div
+            className={`h-[38px] ${radiusClass} flex items-center justify-between overflow-hidden border transition-all duration-200 ${
+              isRoyal
+                ? 'bg-[#071F17] border-[#D4AF37] text-[#F7E7BE] shadow-[0_0_14px_rgba(212,175,55,0.2)]'
+                : 'bg-[#09231A] border-[#09231A] text-[#F7E7BE] shadow-xs'
+            }`}
+            aria-label={`Quantity in bag: ${cartQty}`}
+          >
+            <button
+              type="button"
+              onClick={onDecrease}
+              className={`w-9 h-full flex items-center justify-center transition-colors cursor-pointer ${
+                isRoyal
+                  ? 'text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#09231A] active:scale-90'
+                  : 'text-[#F7E7BE] hover:bg-[#144734] active:scale-90'
+              }`}
+              aria-label={`Decrease quantity of ${product.name}`}
+              title="Decrease quantity"
+            >
+              <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
+            </button>
+
+            <span
+              className="text-xs font-extrabold tabular-nums tracking-wide select-none px-1"
+              data-testid="card-cart-qty"
+            >
+              {cartQty}
+            </span>
+
+            <button
+              type="button"
+              onClick={onIncrease}
+              className={`w-9 h-full flex items-center justify-center transition-colors cursor-pointer ${
+                isRoyal
+                  ? 'text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#09231A] active:scale-90'
+                  : 'text-[#F7E7BE] hover:bg-[#144734] active:scale-90'
+              }`}
+              aria-label={`Increase quantity of ${product.name}`}
+              title="Increase quantity"
+            >
+              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onAdd}
+            className={`h-[38px] ${radiusClass} px-2.5 flex items-center justify-center gap-1.5 text-[11px] font-bold tracking-[0.02em] border transition-all duration-200 active:scale-95 cursor-pointer whitespace-nowrap ${
+              isRoyal
+                ? 'bg-[#09231A]/85 hover:bg-[#09231A] text-[#F7E7BE] border-[#D4AF37]/55 hover:border-[#F7E7BE]'
+                : 'bg-[#FAF7F2] hover:bg-[#09231A] text-[#09231A] hover:text-[#F7E7BE] border-[#09231A]/30 hover:border-[#09231A]'
+            }`}
+          >
+            <ShoppingBag className={`w-3.5 h-3.5 shrink-0 ${isRoyal ? 'text-[#D4AF37]' : ''}`} />
+            <span>Add to Cart</span>
+          </button>
+        )}
+
+        <button
+          type="button"
+          onClick={onBuyNow}
+          className={`h-[38px] ${radiusClass} px-2.5 flex items-center justify-center gap-1.5 text-[11px] font-extrabold tracking-[0.02em] transition-all duration-200 active:scale-95 cursor-pointer whitespace-nowrap shadow-xs ${
+            isRoyal
+              ? 'bg-gradient-to-r from-[#E5C786] to-[#F7E7BE] hover:from-[#F3DC9B] hover:to-white text-[#09231A]'
+              : 'bg-gradient-to-r from-[#E5C786] to-[#D4AF37] hover:from-[#D4AF37] hover:to-[#C5A059] text-[#09231A]'
+          }`}
+        >
+          <Zap className="w-3.5 h-3.5 shrink-0 fill-current" />
+          <span>Buy Now</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const HoverQuickBagDock = ({
+  product,
+  cartQty,
+  quickSizeLabel,
+  onAdd,
+  onDecrease,
+  onIncrease,
+  theme = 'light',
+  pill = true,
+}) => {
+  const isRoyal = theme === 'royal';
+  const radiusClass = pill ? 'rounded-full' : 'rounded-lg';
+
+  if (cartQty > 0) {
+    return (
+      <div
+        className={`w-full h-[38px] ${radiusClass} flex items-center justify-between overflow-hidden backdrop-blur-md shadow-lg border ${
+          isRoyal
+            ? 'bg-[#09231A]/95 border-[#D4AF37] text-[#F7E7BE]'
+            : 'bg-[#09231A]/95 border-[#D4AF37]/60 text-[#F7E7BE]'
+        }`}
+      >
+        <button
+          type="button"
+          onClick={onDecrease}
+          className="w-10 h-full flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#09231A] transition-colors cursor-pointer"
+          aria-label={`Decrease quantity of ${product.name}`}
+        >
+          <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
+        </button>
+        <span className="text-[11px] font-bold uppercase tracking-[0.14em] tabular-nums select-none">
+          {cartQty} in Bag
+        </span>
+        <button
+          type="button"
+          onClick={onIncrease}
+          className="w-10 h-full flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#09231A] transition-colors cursor-pointer"
+          aria-label={`Increase quantity of ${product.name}`}
+        >
+          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onAdd}
+      className={`w-full py-2.5 px-4 ${radiusClass} text-[11px] font-bold uppercase tracking-[0.16em] flex items-center justify-center gap-2 backdrop-blur-md shadow-lg transition-all cursor-pointer ${
+        isRoyal
+          ? 'bg-gradient-to-r from-[#E5C786] to-[#F7E7BE] hover:from-[#F3DC9B] hover:to-white text-[#09231A] font-extrabold'
+          : 'bg-[#09231A]/95 hover:bg-[#09231A] text-[#F7E7BE] hover:text-white border border-[#D4AF37]/50'
+      }`}
+    >
+      <ShoppingBag className={`w-3.5 h-3.5 ${isRoyal ? '' : 'text-[#D4AF37]'}`} />
+      <span>Quick Bag ({quickSizeLabel})</span>
+    </button>
+  );
+};
 
 export const ProductCard = ({
   product,
@@ -10,26 +163,82 @@ export const ProductCard = ({
   variant = 'default',
   rank = null,
 }) => {
+  const navigate = useNavigate();
   const { isInWishlist, toggleWishlist } = useWishlist();
-  const { addToCart } = useCart();
-  const isWishlisted = isInWishlist(product.id);
+  const { items, addToCart, updateQuantity } = useCart();
+
+  const resolvedId = product?.id || product?._id;
+  const isWishlisted = isInWishlist(resolvedId);
 
   const discountPercent = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
 
-  const defaultSize =
-    product?.isFreeSize ||
-    (Array.isArray(product?.sizes) && product.sizes.includes('Free Size'))
-      ? 'Free Size'
-      : product?.sizes?.[0] || 'Standard';
+  const isUnstitched = Boolean(
+    (typeof product?.category === 'string' && product.category.toLowerCase().includes('unstitched')) ||
+    (typeof product?.subCategory === 'string' && product.subCategory.toLowerCase().includes('unstitched')) ||
+    (typeof product?.name === 'string' && product.name.toLowerCase().includes('unstitched')) ||
+    (typeof product?.slug === 'string' && product.slug.toLowerCase().includes('unstitched')) ||
+    (Array.isArray(product?.tags) && product.tags.some((t) => typeof t === 'string' && t.toLowerCase().includes('unstitched')))
+  );
 
-  const quickSizeLabel = defaultSize === 'Free Size' ? 'Free Size' : `Size ${defaultSize}`;
+  const defaultSize = isUnstitched
+    ? 'Unstitched (Free Size)'
+    : product?.isFreeSize ||
+      (Array.isArray(product?.sizes) && product.sizes.includes('Free Size'))
+    ? 'Free Size'
+    : product?.sizes?.[0] || 'Standard';
+
+  const quickSizeLabel = isUnstitched
+    ? 'Free Size'
+    : defaultSize === 'Free Size'
+    ? 'Free Size'
+    : `Size ${defaultSize}`;
+
+  const expectedKey = `${resolvedId}-${defaultSize}-standard`;
+  const cartItem =
+    items.find((i) => i.itemKey === expectedKey) ||
+    items.find(
+      (i) =>
+        !i.customStitching &&
+        ((resolvedId && i.product?.id === resolvedId) ||
+          (product?._id && i.product?._id === product._id))
+    ) ||
+    null;
+  const cartQty = cartItem?.quantity || 0;
+
+  const cartProduct = product?.id ? product : { ...product, id: resolvedId };
 
   const handleAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart(product, defaultSize, 1);
+    addToCart(cartProduct, defaultSize, 1);
+  };
+
+  const handleDecrease = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!cartItem) return;
+    updateQuantity(cartItem.itemKey, cartQty - 1);
+  };
+
+  const handleIncrease = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (cartItem) {
+      updateQuantity(cartItem.itemKey, cartQty + 1);
+    } else {
+      addToCart(cartProduct, defaultSize, 1);
+    }
+  };
+
+  const handleBuyNow = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (cartQty === 0) {
+      addToCart(cartProduct, defaultSize, 1);
+    }
+    navigate('/checkout');
   };
 
   // =========================================================================
@@ -148,19 +357,59 @@ export const ProductCard = ({
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
+              {cartQty > 0 ? (
+                <div
+                  className="h-[42px] min-w-[146px] rounded-full bg-[#09231A] border border-[#09231A] text-[#F7E7BE] flex items-center justify-between overflow-hidden shadow-sm"
+                  aria-label={`Quantity in bag: ${cartQty}`}
+                >
+                  <button
+                    type="button"
+                    onClick={handleDecrease}
+                    className="w-10 h-full flex items-center justify-center hover:bg-[#144734] active:scale-90 transition-colors cursor-pointer"
+                    aria-label={`Decrease quantity of ${product.name}`}
+                  >
+                    <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </button>
+                  <span
+                    className="text-xs font-extrabold tabular-nums tracking-wide select-none px-1"
+                    data-testid="card-cart-qty"
+                  >
+                    {cartQty}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleIncrease}
+                    className="w-10 h-full flex items-center justify-center hover:bg-[#144734] active:scale-90 transition-colors cursor-pointer"
+                    aria-label={`Increase quantity of ${product.name}`}
+                  >
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleAdd}
+                  className="inline-flex items-center justify-center gap-2 h-[42px] px-5 rounded-full bg-[#FAF7F2] hover:bg-[#09231A] text-[#09231A] hover:text-[#F7E7BE] border border-[#09231A]/30 hover:border-[#09231A] text-xs font-bold tracking-wide active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+                >
+                  <ShoppingBag className="w-4 h-4 shrink-0" />
+                  <span>Add to Cart</span>
+                </button>
+              )}
+
               <button
                 type="button"
-                onClick={handleAdd}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#09231A] hover:bg-[#144734] text-[#F7E7BE] text-xs font-bold uppercase tracking-wider shadow-sm active:scale-95 transition-all cursor-pointer"
+                onClick={handleBuyNow}
+                className="inline-flex items-center justify-center gap-2 h-[42px] px-5 rounded-full bg-gradient-to-r from-[#E5C786] to-[#D4AF37] hover:from-[#D4AF37] hover:to-[#C5A059] text-[#09231A] text-xs font-extrabold tracking-wide shadow-sm active:scale-95 transition-all cursor-pointer whitespace-nowrap"
               >
-                <ShoppingBag className="w-4 h-4 text-[#D4AF37]" />
-                <span>Add to Bag</span>
+                <Zap className="w-3.5 h-3.5 shrink-0 fill-current" />
+                <span>Buy Now</span>
               </button>
+
               <Link
                 to={`/product/${product.id}`}
                 state={{ product }}
-                className="px-5 py-2.5 rounded-full border border-[#09231A]/25 hover:border-[#09231A] text-[#09231A] text-xs font-bold uppercase tracking-wider transition-colors"
+                className="h-[42px] inline-flex items-center px-4 rounded-full border border-[#09231A]/20 hover:border-[#09231A] text-[#09231A] text-xs font-bold tracking-wide transition-colors whitespace-nowrap"
               >
                 Details
               </Link>
@@ -243,19 +492,59 @@ export const ProductCard = ({
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
+              {cartQty > 0 ? (
+                <div
+                  className="h-[42px] min-w-[146px] rounded-full bg-[#071F17] border border-[#D4AF37] text-[#F7E7BE] shadow-[0_0_16px_rgba(212,175,55,0.22)] flex items-center justify-between overflow-hidden"
+                  aria-label={`Quantity in bag: ${cartQty}`}
+                >
+                  <button
+                    type="button"
+                    onClick={handleDecrease}
+                    className="w-10 h-full flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#09231A] active:scale-90 transition-colors cursor-pointer"
+                    aria-label={`Decrease quantity of ${product.name}`}
+                  >
+                    <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </button>
+                  <span
+                    className="text-xs font-extrabold tabular-nums tracking-wide select-none px-1"
+                    data-testid="card-cart-qty"
+                  >
+                    {cartQty}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleIncrease}
+                    className="w-10 h-full flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#09231A] active:scale-90 transition-colors cursor-pointer"
+                    aria-label={`Increase quantity of ${product.name}`}
+                  >
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleAdd}
+                  className="inline-flex items-center justify-center gap-2 h-[42px] px-5 rounded-full bg-[#09231A]/85 hover:bg-[#09231A] text-[#F7E7BE] border border-[#D4AF37]/55 hover:border-[#F7E7BE] text-xs font-bold tracking-wide active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+                >
+                  <ShoppingBag className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                  <span>Add to Cart</span>
+                </button>
+              )}
+
               <button
                 type="button"
-                onClick={handleAdd}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-[#E5C786] to-[#F7E7BE] hover:from-[#F3DC9B] hover:to-white text-[#09231A] text-xs font-extrabold uppercase tracking-wider shadow-md active:scale-95 transition-all cursor-pointer"
+                onClick={handleBuyNow}
+                className="inline-flex items-center justify-center gap-2 h-[42px] px-5 rounded-full bg-gradient-to-r from-[#E5C786] to-[#F7E7BE] hover:from-[#F3DC9B] hover:to-white text-[#09231A] text-xs font-extrabold tracking-wide shadow-md active:scale-95 transition-all cursor-pointer whitespace-nowrap"
               >
-                <ShoppingBag className="w-4 h-4" />
-                <span>Add to Bag</span>
+                <Zap className="w-3.5 h-3.5 shrink-0 fill-current" />
+                <span>Buy Now</span>
               </button>
+
               <Link
                 to={`/product/${product.id}`}
                 state={{ product }}
-                className="px-5 py-2.5 rounded-full border border-[#D4AF37]/45 hover:border-[#F7E7BE] text-[#F7E7BE] text-xs font-bold uppercase tracking-wider transition-colors"
+                className="h-[42px] inline-flex items-center px-4 rounded-full border border-[#D4AF37]/40 hover:border-[#F7E7BE] text-[#F7E7BE] text-xs font-bold tracking-wide transition-colors whitespace-nowrap"
               >
                 Details
               </Link>
@@ -365,21 +654,23 @@ export const ProductCard = ({
             )}
           </div>
 
-          {/* Slide-Up Pill Quick Bag on Hover */}
+          {/* Slide-Up Pill Quick Bag / Stepper on Hover */}
           <div className="absolute inset-x-4 bottom-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-10">
-            <button
-              type="button"
-              onClick={handleAdd}
-              className="w-full bg-[#09231A]/95 hover:bg-[#09231A] text-[#F7E7BE] hover:text-white py-2.5 px-4 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] flex items-center justify-center gap-2 border border-[#D4AF37]/50 backdrop-blur-md shadow-lg transition-all cursor-pointer"
-            >
-              <ShoppingBag className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>Quick Bag ({quickSizeLabel})</span>
-            </button>
+            <HoverQuickBagDock
+              product={product}
+              cartQty={cartQty}
+              quickSizeLabel={quickSizeLabel}
+              onAdd={handleAdd}
+              onDecrease={handleDecrease}
+              onIncrease={handleIncrease}
+              theme="light"
+              pill
+            />
           </div>
         </div>
 
         {/* Clean Atelier Details */}
-        <div className="p-5 flex flex-col flex-grow justify-between bg-white">
+        <div className="p-4 xl:p-5 flex flex-col flex-grow justify-between bg-white">
           <div>
             <div className="flex items-center justify-between gap-2 mb-1.5">
               <span className="uppercase tracking-[0.2em] text-[10px] font-bold text-[#9B7B1C] truncate">
@@ -405,9 +696,9 @@ export const ProductCard = ({
             </p>
           </div>
 
-          {/* Inline Price & Sleek Pill CTA */}
-          <div className="pt-4 mt-4 border-t border-stone-100 flex items-center justify-between gap-3">
-            <div className="flex flex-col">
+          {/* Price & Dual Action Dock (Add to Cart / - qty + & Buy Now) */}
+          <div className="pt-3.5 mt-3.5 border-t border-stone-100 space-y-3">
+            <div className="flex items-baseline justify-between gap-2">
               <div className="flex items-baseline gap-1.5 flex-wrap">
                 <span className="font-serif text-lg font-bold text-[#09231A]">
                   ₹{product.price.toLocaleString('en-IN')}
@@ -423,17 +714,21 @@ export const ProductCard = ({
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-medium text-[#18523D]">Ready to Ship</span>
+              <span className="text-[10px] font-medium text-[#18523D] shrink-0 whitespace-nowrap">
+                Ready to Ship
+              </span>
             </div>
 
-            <button
-              type="button"
-              onClick={handleAdd}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#09231A] hover:bg-[#144734] text-[#F7E7BE] text-[11px] font-bold uppercase tracking-wider shadow-xs active:scale-95 transition-all shrink-0 cursor-pointer"
-            >
-              <ShoppingBag className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>Add</span>
-            </button>
+            <CardActionButtons
+              product={product}
+              cartQty={cartQty}
+              onAdd={handleAdd}
+              onDecrease={handleDecrease}
+              onIncrease={handleIncrease}
+              onBuyNow={handleBuyNow}
+              theme="light"
+              pill
+            />
           </div>
         </div>
       </article>
@@ -499,21 +794,23 @@ export const ProductCard = ({
             )}
           </div>
 
-          {/* Champagne Gold Quick Bag Dock on Hover */}
+          {/* Champagne Gold Quick Bag / Stepper Dock on Hover */}
           <div className="absolute inset-x-4 bottom-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-10">
-            <button
-              type="button"
-              onClick={handleAdd}
-              className="w-full bg-gradient-to-r from-[#E5C786] to-[#F7E7BE] hover:from-[#F3DC9B] hover:to-white text-[#09231A] py-2.5 px-4 rounded-full text-[11px] font-extrabold uppercase tracking-[0.18em] flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
-            >
-              <ShoppingBag className="w-3.5 h-3.5" />
-              <span>Quick Bag ({quickSizeLabel})</span>
-            </button>
+            <HoverQuickBagDock
+              product={product}
+              cartQty={cartQty}
+              quickSizeLabel={quickSizeLabel}
+              onAdd={handleAdd}
+              onDecrease={handleDecrease}
+              onIncrease={handleIncrease}
+              theme="royal"
+              pill
+            />
           </div>
         </div>
 
         {/* Luxury Dark Emerald Details */}
-        <div className="p-5 flex flex-col flex-grow justify-between bg-gradient-to-b from-[#0E2F23] to-[#082017]">
+        <div className="p-4 xl:p-5 flex flex-col flex-grow justify-between bg-gradient-to-b from-[#0E2F23] to-[#082017]">
           <div>
             <div className="flex items-center justify-between gap-2 mb-1.5">
               <span className="uppercase tracking-[0.2em] text-[10px] font-semibold text-[#D4AF37] truncate">
@@ -542,9 +839,9 @@ export const ProductCard = ({
             </p>
           </div>
 
-          {/* Luminous Price & Gold Add Pill */}
-          <div className="pt-4 mt-4 border-t border-[#D4AF37]/20 flex items-center justify-between gap-3">
-            <div className="flex flex-col">
+          {/* Luminous Price & Dual Gold/Emerald Action Dock */}
+          <div className="pt-3.5 mt-3.5 border-t border-[#D4AF37]/20 space-y-3">
+            <div className="flex items-baseline justify-between gap-2">
               <div className="flex items-baseline gap-1.5 flex-wrap">
                 <span className="font-serif text-lg font-bold text-[#F7E7BE]">
                   ₹{product.price.toLocaleString('en-IN')}
@@ -560,17 +857,21 @@ export const ProductCard = ({
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-medium text-[#D4AF37]/85">Signature Piece</span>
+              <span className="text-[10px] font-medium text-[#D4AF37]/85 shrink-0 whitespace-nowrap">
+                Signature Piece
+              </span>
             </div>
 
-            <button
-              type="button"
-              onClick={handleAdd}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#E5C786] hover:bg-[#F7E7BE] text-[#09231A] text-[11px] font-extrabold uppercase tracking-wider shadow-sm active:scale-95 transition-all shrink-0 cursor-pointer"
-            >
-              <ShoppingBag className="w-3.5 h-3.5" />
-              <span>Add</span>
-            </button>
+            <CardActionButtons
+              product={product}
+              cartQty={cartQty}
+              onAdd={handleAdd}
+              onDecrease={handleDecrease}
+              onIncrease={handleIncrease}
+              onBuyNow={handleBuyNow}
+              theme="royal"
+              pill
+            />
           </div>
         </div>
       </article>
@@ -625,8 +926,9 @@ export const ProductCard = ({
         {/* Action Buttons: Wishlist & Quick View */}
         <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
           <button
+            type="button"
             onClick={() => toggleWishlist(product)}
-            className={`w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-200 shadow-md ${
+            className={`w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-200 shadow-md cursor-pointer ${
               isWishlisted
                 ? 'bg-[#8C271E] text-white'
                 : 'bg-white/85 text-stone-700 hover:bg-[#09231A] hover:text-[#F7E7BE]'
@@ -638,8 +940,9 @@ export const ProductCard = ({
 
           {onQuickView && (
             <button
+              type="button"
               onClick={() => onQuickView(product)}
-              className="w-9 h-9 rounded-full bg-white/85 text-stone-700 hover:bg-[#09231A] hover:text-[#F7E7BE] flex items-center justify-center backdrop-blur-md transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-md"
+              className="w-9 h-9 rounded-full bg-white/85 text-stone-700 hover:bg-[#09231A] hover:text-[#F7E7BE] flex items-center justify-center backdrop-blur-md transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-md cursor-pointer"
               aria-label="Quick View"
               title="Quick View"
             >
@@ -648,15 +951,18 @@ export const ProductCard = ({
           )}
         </div>
 
-        {/* Quick Add Overlay on Hover */}
+        {/* Quick Add / Stepper Overlay on Hover */}
         <div className="absolute inset-x-3 bottom-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-          <button
-            onClick={handleAdd}
-            className="w-full bg-[#09231A]/95 hover:bg-[#09231A] text-[#F7E7BE] hover:text-white py-2.5 px-3 rounded-lg text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2 border border-[#D4AF37]/40 backdrop-blur-md shadow-lg transition-all"
-          >
-            <ShoppingBag className="w-4 h-4 text-[#D4AF37]" />
-            <span>Quick Bag ({quickSizeLabel})</span>
-          </button>
+          <HoverQuickBagDock
+            product={product}
+            cartQty={cartQty}
+            quickSizeLabel={quickSizeLabel}
+            onAdd={handleAdd}
+            onDecrease={handleDecrease}
+            onIncrease={handleIncrease}
+            theme="light"
+            pill={false}
+          />
         </div>
       </div>
 
@@ -684,9 +990,9 @@ export const ProductCard = ({
           </p>
         </div>
 
-        {/* Price & Add to Cart Button */}
-        <div className="pt-2.5 border-t border-stone-100 space-y-2">
-          <div className="flex items-baseline justify-between">
+        {/* Price & Dual Action Dock (Add to Cart / - qty + & Buy Now) */}
+        <div className="pt-2.5 border-t border-stone-100 space-y-2.5">
+          <div className="flex items-baseline justify-between gap-2">
             <div className="flex items-baseline gap-2">
               <span className="text-base font-bold text-[#09231A]">
                 ₹{product.price.toLocaleString('en-IN')}
@@ -697,19 +1003,21 @@ export const ProductCard = ({
                 </span>
               )}
             </div>
-            <span className="text-[11px] text-[#18523D] font-medium">
+            <span className="text-[11px] text-[#18523D] font-medium shrink-0 whitespace-nowrap">
               In Stock
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={handleAdd}
-            className="w-full bg-[#E5C786] hover:bg-[#D4AF37] text-[#09231A] py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
-          >
-            <ShoppingBag className="w-3.5 h-3.5" />
-            <span>Add to Cart</span>
-          </button>
+          <CardActionButtons
+            product={product}
+            cartQty={cartQty}
+            onAdd={handleAdd}
+            onDecrease={handleDecrease}
+            onIncrease={handleIncrease}
+            onBuyNow={handleBuyNow}
+            theme="light"
+            pill={false}
+          />
         </div>
       </div>
     </div>
