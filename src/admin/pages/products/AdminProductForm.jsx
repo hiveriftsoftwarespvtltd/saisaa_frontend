@@ -29,7 +29,7 @@ export const AdminProductForm = () => {
         source.cardImage ||
         source.coverImage ||
         source.images?.[0] ||
-        '/images/05_shop_product_card_1.jpg';
+        '';
       const isDuplicate = !existingProduct && Boolean(duplicateSource);
       return {
         name: isDuplicate ? `${source.name || ''} (Copy)` : (source.name || ''),
@@ -67,7 +67,7 @@ export const AdminProductForm = () => {
         images:
           Array.isArray(source.images) && source.images.length > 0
             ? source.images
-            : [initialCover],
+            : (initialCover ? [initialCover] : []),
       };
     }
     return {
@@ -96,9 +96,9 @@ export const AdminProductForm = () => {
       status: 'Active',
       isFeatured: false,
       isBestSeller: false,
-      cardImage: '/images/05_shop_product_card_1.jpg',
-      coverImage: '/images/05_shop_product_card_1.jpg',
-      images: ['/images/05_shop_product_card_1.jpg'],
+      cardImage: '',
+      coverImage: '',
+      images: [],
     };
   });
 
@@ -195,16 +195,6 @@ export const AdminProductForm = () => {
   };
 
   const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size', 'Standard'];
-  const galleryPresets = [
-    '/images/hero-model.jpg',
-    '/images/blue-kurti.jpg',
-    '/images/pink-kurti.jpg',
-    '/images/maroon-story.jpg',
-    '/images/saree-arch.jpg',
-    '/images/saree-editorial.jpg',
-    '/images/lavender-suit.jpg',
-    '/images/rani-pink.jpg',
-  ];
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -324,12 +314,17 @@ export const AdminProductForm = () => {
   };
 
   const removeImage = (imgUrl) => {
-    if (formData.images.length > 1) {
-      setFormData((prev) => ({
+    setFormData((prev) => {
+      const nextImages = (prev.images || []).filter((i) => i !== imgUrl);
+      const nextCover =
+        prev.cardImage === imgUrl ? (nextImages[0] || '') : prev.cardImage;
+      return {
         ...prev,
-        images: prev.images.filter((i) => i !== imgUrl),
-      }));
-    }
+        images: nextImages,
+        cardImage: nextCover,
+        coverImage: nextCover,
+      };
+    });
   };
 
   const handleFeatureChange = (index, value) => {
@@ -392,11 +387,11 @@ export const AdminProductForm = () => {
     const finalCover =
       formData.cardImage ||
       formData.coverImage ||
-      (formData.images?.length > 0 ? formData.images[0] : '/images/05_shop_product_card_1.jpg');
+      (formData.images?.length > 0 ? formData.images[0] : '');
 
     let finalImages = Array.isArray(formData.images) && formData.images.length > 0
       ? [...formData.images]
-      : [finalCover];
+      : (finalCover ? [finalCover] : []);
 
     if (finalCover && !finalImages.includes(finalCover)) {
       finalImages = [finalCover, ...finalImages];
@@ -1272,7 +1267,7 @@ export const AdminProductForm = () => {
 
           {/* Simplified & Clean Product Photos Manager */}
           <ProductMediaUpload
-            coverImage={formData.cardImage || formData.coverImage}
+            coverImage={formData.cardImage || formData.coverImage || ''}
             onCoverChange={(newCoverUrl) => {
               setFormData((prev) => {
                 let nextImgs = Array.isArray(prev.images) ? [...prev.images] : [];
@@ -1281,8 +1276,8 @@ export const AdminProductForm = () => {
                 }
                 return {
                   ...prev,
-                  cardImage: newCoverUrl,
-                  coverImage: newCoverUrl,
+                  cardImage: newCoverUrl || '',
+                  coverImage: newCoverUrl || '',
                   images: nextImgs,
                 };
               });
@@ -1293,12 +1288,14 @@ export const AdminProductForm = () => {
                 let nextCover = prev.cardImage;
                 if (!nextCover && nextImgs.length > 0) {
                   nextCover = nextImgs[0];
+                } else if (nextCover && !nextImgs.includes(nextCover)) {
+                  nextCover = nextImgs[0] || '';
                 }
                 return {
                   ...prev,
                   images: nextImgs,
-                  cardImage: nextCover,
-                  coverImage: nextCover,
+                  cardImage: nextCover || '',
+                  coverImage: nextCover || '',
                 };
               });
             }}

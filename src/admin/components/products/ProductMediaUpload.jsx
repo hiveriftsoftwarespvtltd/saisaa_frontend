@@ -13,20 +13,8 @@ import {
 } from 'lucide-react';
 import { apiClient, API_ENDPOINTS } from '../../../config';
 
-// Authentic Real Product Images from SAISAA Catalog (No AI stock photos)
-export const REAL_CATALOG_IMAGES = [
-  { name: 'Mustard Anarkali', url: '/images/05_shop_product_card_1.jpg' },
-  { name: 'Indigo Kurti', url: '/images/06_shop_product_card_2.jpg' },
-  { name: 'Gold Brocade Saree', url: '/images/07_shop_product_card_3.jpg' },
-  { name: 'Emerald Chanderi', url: '/images/08_shop_product_card_4.jpg' },
-  { name: 'Rani Pink Sharara', url: '/images/09_shop_product_card_5.jpg' },
-  { name: 'Banarasi Organza', url: '/images/10_shop_product_card_6.jpg' },
-  { name: 'Chikankari Kurti', url: '/images/11_shop_product_card_7.jpg' },
-  { name: 'Crimson Velvet Suit', url: '/images/12_shop_product_card_8.jpg' },
-];
-
 export const ProductMediaUpload = ({
-  coverImage = '/images/05_shop_product_card_1.jpg',
+  coverImage = '',
   onCoverChange,
   galleryImages = [],
   onGalleryChange,
@@ -283,7 +271,6 @@ export const ProductMediaUpload = ({
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = '/images/05_shop_product_card_1.jpg';
                 }}
               />
             </div>
@@ -384,7 +371,6 @@ export const ProductMediaUpload = ({
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = '/images/05_shop_product_card_1.jpg';
                     }}
                   />
 
@@ -467,49 +453,6 @@ export const ProductMediaUpload = ({
             )}
           </div>
         )}
-      </div>
-
-      {/* SECTION 3: QUICK SELECT FROM ACTUAL CATALOG PHOTOS (NOT AI) */}
-      <div className="pt-2 border-t border-stone-100 space-y-2">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500 block">
-          Or pick from SAISAA Catalog Photos:
-        </span>
-        <div className="grid grid-cols-4 gap-2">
-          {REAL_CATALOG_IMAGES.map((catImg, idx) => {
-            const isSelectedAsCover = coverImage === catImg.url;
-            return (
-              <button
-                type="button"
-                key={idx}
-                onClick={() => {
-                  onCoverChange(catImg.url);
-                  if (!galleryImages.includes(catImg.url)) {
-                    onGalleryChange([...galleryImages, catImg.url]);
-                  }
-                }}
-                className={`relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
-                  isSelectedAsCover
-                    ? 'border-[#0A261C] ring-2 ring-[#0A261C]/20 opacity-100'
-                    : 'border-stone-200 hover:border-stone-400 opacity-80 hover:opacity-100'
-                }`}
-                title={`Select ${catImg.name}`}
-              >
-                <img
-                  src={catImg.url}
-                  alt={catImg.name}
-                  className="w-full h-full object-cover"
-                />
-                {isSelectedAsCover && (
-                  <div className="absolute inset-0 bg-[#0A261C]/25 flex items-center justify-center">
-                    <span className="bg-[#0A261C] text-[#F7E7BE] p-1 rounded-full shadow-xs">
-                      <Check className="w-3 h-3" />
-                    </span>
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
       </div>
     </div>
   );
