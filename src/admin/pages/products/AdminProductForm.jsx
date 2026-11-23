@@ -31,11 +31,30 @@ export const AdminProductForm = () => {
         source.images?.[0] ||
         '';
       const isDuplicate = !existingProduct && Boolean(duplicateSource);
+      const cleanName = (source.name || '')
+        .replace(/\s*\((?:copy|duplicate)\)/gi, '')
+        .trim();
+
+      let cleanSku = '';
+      if (source.sku) {
+        const strippedSku = source.sku.replace(/-COPY/gi, '').trim();
+        if (isDuplicate) {
+          const numMatch = strippedSku.match(/^(.*?)(\d+)$/);
+          if (numMatch) {
+            cleanSku = `${numMatch[1]}${Math.floor(1000 + Math.random() * 9000)}`;
+          } else {
+            cleanSku = `${strippedSku}-${Math.floor(100 + Math.random() * 900)}`;
+          }
+        } else {
+          cleanSku = strippedSku;
+        }
+      } else if (isDuplicate) {
+        cleanSku = `SAI-${Date.now().toString().slice(-4)}`;
+      }
+
       return {
-        name: isDuplicate ? `${source.name || ''} (Copy)` : (source.name || ''),
-        sku: isDuplicate
-          ? (source.sku ? `${source.sku}-COPY` : `SAI-${Date.now().toString().slice(-4)}`)
-          : (source.sku || ''),
+        name: cleanName,
+        sku: cleanSku,
         description: source.description || '',
         category: source.category || 'Stitched Suits',
         subCategory:
@@ -437,20 +456,20 @@ export const AdminProductForm = () => {
           isEditing
             ? `Edit: ${formData.name || 'Product'}`
             : duplicateSource
-            ? `Duplicate: ${duplicateSource.name || 'Product'}`
+            ? `New Variant: ${(duplicateSource.name || 'Product').replace(/\s*\((?:copy|duplicate)\)/gi, '').trim()}`
             : 'New Royal Product'
         }
         subtitle={
           isEditing
             ? `Update specifications and imagery for SKU ${formData.sku}`
             : duplicateSource
-            ? `Cloned from SKU ${duplicateSource.sku || duplicateSource.name}. Update color, photos & SKU to publish this color variant.`
+            ? `Pre-filled from ${(duplicateSource.name || '').replace(/\s*\((?:copy|duplicate)\)/gi, '').trim()}. Update color, photos & SKU to publish this variant.`
             : 'Register a new luxury ethnic wear creation into the SAISAA collection.'
         }
         breadcrumbs={[
           { label: 'Catalog', path: '/admin/products' },
           { label: 'Products', path: '/admin/products' },
-          { label: isEditing ? 'Edit Product' : duplicateSource ? 'Duplicate Product' : 'New Product' },
+          { label: isEditing ? 'Edit Product' : duplicateSource ? 'New Variant' : 'New Product' },
         ]}
         actions={
           <div className="flex items-center gap-2">
@@ -486,7 +505,7 @@ export const AdminProductForm = () => {
                 {isEditing
                   ? 'Save Changes'
                   : duplicateSource
-                  ? 'Publish Cloned Variant'
+                  ? 'Publish Variant'
                   : 'Publish Product'}
               </span>
             </button>
@@ -503,14 +522,14 @@ export const AdminProductForm = () => {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-bold text-sm text-emerald-950">
-                  Duplicating from &ldquo;{duplicateSource.name}&rdquo;
+                  New Variant from &ldquo;{(duplicateSource.name || '').replace(/\s*\((?:copy|duplicate)\)/gi, '').trim()}&rdquo;
                 </span>
                 <span className="text-[11px] font-bold px-2 py-0.5 bg-emerald-200/80 rounded-full text-emerald-800 uppercase tracking-wider">
-                  New Color Variant Mode
+                  Color Variant Mode
                 </span>
               </div>
               <p className="text-xs text-emerald-800 mt-0.5">
-                Fabric, karigari work, category, taxonomy, pricing and sizes are pre-filled. Simply change the <strong>Color</strong>, upload new color <strong>Images</strong>, adjust SKU, and save!
+                Fabric, karigari work, category, taxonomy, pricing and sizes are pre-filled. Simply change the <strong>Color</strong>, upload new color <strong>Images</strong>, and save!
               </p>
             </div>
           </div>
