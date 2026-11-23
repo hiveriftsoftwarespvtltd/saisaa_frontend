@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Save, Crown, X, Plus, Check, Tags, RefreshCw, Trash2, Scissors, Image as ImageIcon } from 'lucide-react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Save, Crown, X, Plus, Check, Tags, RefreshCw, Trash2, Scissors, Image as ImageIcon, Copy } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
 import { PageHeader } from '../../components/common/PageHeader';
 import { ProductMediaUpload } from '../../components/products/ProductMediaUpload';
@@ -8,58 +8,65 @@ import { ProductMediaUpload } from '../../components/products/ProductMediaUpload
 export const AdminProductForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { products, addProduct, updateProduct, categories } = useAdmin();
 
   const isEditing = Boolean(id);
   const existingProduct = isEditing ? products.find((p) => p.id === id) : null;
+  const duplicateSource = !isEditing && location.state?.duplicateFrom ? location.state.duplicateFrom : null;
 
   const [hasSizePricing, setHasSizePricing] = useState(() => {
-    return Boolean(existingProduct?.sizeVariants && existingProduct.sizeVariants.length > 0);
+    const source = existingProduct || duplicateSource;
+    return Boolean(source?.sizeVariants && source.sizeVariants.length > 0);
   });
   const [customSizeInput, setCustomSizeInput] = useState('');
 
   // Form State initialized directly
   const [formData, setFormData] = useState(() => {
-    if (existingProduct) {
+    const source = existingProduct || duplicateSource;
+    if (source) {
       const initialCover =
-        existingProduct.cardImage ||
-        existingProduct.coverImage ||
-        existingProduct.images?.[0] ||
+        source.cardImage ||
+        source.coverImage ||
+        source.images?.[0] ||
         '/images/05_shop_product_card_1.jpg';
+      const isDuplicate = !existingProduct && Boolean(duplicateSource);
       return {
-        name: existingProduct.name || '',
-        sku: existingProduct.sku || '',
-        description: existingProduct.description || '',
-        category: existingProduct.category || 'Stitched Suits',
+        name: isDuplicate ? `${source.name || ''} (Copy)` : (source.name || ''),
+        sku: isDuplicate
+          ? (source.sku ? `${source.sku}-COPY` : `SAI-${Date.now().toString().slice(-4)}`)
+          : (source.sku || ''),
+        description: source.description || '',
+        category: source.category || 'Stitched Suits',
         subCategory:
-          typeof existingProduct.subCategory === 'object' && existingProduct.subCategory !== null
-            ? existingProduct.subCategory.name || ''
-            : existingProduct.subCategory || '',
-        price: existingProduct.price || '',
-        originalPrice: existingProduct.originalPrice || '',
-        stock: existingProduct.stock?.toString() || '0',
-        lowStockThreshold: existingProduct.lowStockThreshold?.toString() || '5',
-        fabric: existingProduct.fabric || '',
-        color: existingProduct.color || '',
-        work: existingProduct.work || '',
-        care: existingProduct.care || 'Dry clean only.',
+          typeof source.subCategory === 'object' && source.subCategory !== null
+            ? source.subCategory.name || ''
+            : source.subCategory || '',
+        price: source.price || '',
+        originalPrice: source.originalPrice || '',
+        stock: source.stock?.toString() || '15',
+        lowStockThreshold: source.lowStockThreshold?.toString() || '5',
+        fabric: source.fabric || '',
+        color: source.color || '',
+        work: source.work || '',
+        care: source.care || 'Dry clean only.',
         features:
-          Array.isArray(existingProduct.features) && existingProduct.features.length > 0
-            ? existingProduct.features
+          Array.isArray(source.features) && source.features.length > 0
+            ? source.features
             : [''],
         isFreeSize:
-          Boolean(existingProduct.isFreeSize) ||
-          (Array.isArray(existingProduct.sizes) && existingProduct.sizes.includes('Free Size')),
-        sizes: existingProduct.sizes || ['M', 'L'],
-        sizeVariants: existingProduct.sizeVariants || [],
-        status: existingProduct.status || 'Active',
-        isFeatured: Boolean(existingProduct.isFeatured),
-        isBestSeller: Boolean(existingProduct.isBestSeller),
+          Boolean(source.isFreeSize) ||
+          (Array.isArray(source.sizes) && source.sizes.includes('Free Size')),
+        sizes: source.sizes || ['M', 'L'],
+        sizeVariants: source.sizeVariants || [],
+        status: source.status || 'Active',
+        isFeatured: isDuplicate ? false : Boolean(source.isFeatured),
+        isBestSeller: isDuplicate ? false : Boolean(source.isBestSeller),
         cardImage: initialCover,
         coverImage: initialCover,
         images:
-          Array.isArray(existingProduct.images) && existingProduct.images.length > 0
-            ? existingProduct.images
+          Array.isArray(source.images) && source.images.length > 0
+            ? source.images
             : [initialCover],
       };
     }
@@ -154,12 +161,13 @@ export const AdminProductForm = () => {
   }, [formData.category, categories]);
 
   const [isCustomSubCat, setIsCustomSubCat] = useState(() => {
-    if (existingProduct?.subCategory) {
+    const source = existingProduct || duplicateSource;
+    if (source?.subCategory) {
       const subName =
-        typeof existingProduct.subCategory === 'object' && existingProduct.subCategory !== null
-          ? existingProduct.subCategory.name
-          : existingProduct.subCategory;
-      const defaultList = TAXONOMY_SUBCATEGORIES[existingProduct.category] || [];
+        typeof source.subCategory === 'object' && source.subCategory !== null
+          ? source.subCategory.name
+          : source.subCategory;
+      const defaultList = TAXONOMY_SUBCATEGORIES[source.category] || [];
       return !defaultList.includes(subName);
     }
     return false;
@@ -430,19 +438,42 @@ export const AdminProductForm = () => {
   return (
     <div className="space-y-6 animate-fade-in pb-16">
       <PageHeader
-        title={isEditing ? `Edit: ${formData.name || 'Product'}` : 'New Royal Product'}
+        title={
+          isEditing
+            ? `Edit: ${formData.name || 'Product'}`
+            : duplicateSource
+            ? `Duplicate: ${duplicateSource.name || 'Product'}`
+            : 'New Royal Product'
+        }
         subtitle={
           isEditing
             ? `Update specifications and imagery for SKU ${formData.sku}`
+            : duplicateSource
+            ? `Cloned from SKU ${duplicateSource.sku || duplicateSource.name}. Update color, photos & SKU to publish this color variant.`
             : 'Register a new luxury ethnic wear creation into the SAISAA collection.'
         }
         breadcrumbs={[
           { label: 'Catalog', path: '/admin/products' },
           { label: 'Products', path: '/admin/products' },
-          { label: isEditing ? 'Edit Product' : 'New Product' },
+          { label: isEditing ? 'Edit Product' : duplicateSource ? 'Duplicate Product' : 'New Product' },
         ]}
         actions={
           <div className="flex items-center gap-2">
+            {isEditing && (
+              <button
+                type="button"
+                onClick={() =>
+                  navigate('/admin/products/new', {
+                    state: { duplicateFrom: existingProduct },
+                  })
+                }
+                className="px-3 py-2 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
+                title="Clone this product into a new color variant"
+              >
+                <Copy className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="hidden sm:inline">Duplicate as New Color</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => navigate('/admin/products')}
@@ -456,11 +487,40 @@ export const AdminProductForm = () => {
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0A261C] hover:bg-[#123D2E] text-[#F7E7BE] rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition-all active:scale-95 cursor-pointer"
             >
               <Save className="w-4 h-4 text-[#D4AF37]" />
-              <span>{isEditing ? 'Save Changes' : 'Publish Product'}</span>
+              <span>
+                {isEditing
+                  ? 'Save Changes'
+                  : duplicateSource
+                  ? 'Publish Cloned Variant'
+                  : 'Publish Product'}
+              </span>
             </button>
           </div>
         }
       />
+
+      {duplicateSource && (
+        <div className="bg-emerald-50 border border-emerald-200/90 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-emerald-900 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0 text-emerald-700">
+              <Copy className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-bold text-sm text-emerald-950">
+                  Duplicating from &ldquo;{duplicateSource.name}&rdquo;
+                </span>
+                <span className="text-[11px] font-bold px-2 py-0.5 bg-emerald-200/80 rounded-full text-emerald-800 uppercase tracking-wider">
+                  New Color Variant Mode
+                </span>
+              </div>
+              <p className="text-xs text-emerald-800 mt-0.5">
+                Fabric, karigari work, category, taxonomy, pricing and sizes are pre-filled. Simply change the <strong>Color</strong>, upload new color <strong>Images</strong>, adjust SKU, and save!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column (8 cols): Basic, Pricing, Details */}

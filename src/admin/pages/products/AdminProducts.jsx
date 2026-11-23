@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Star, ExternalLink, RefreshCw, AlertTriangle, PackageOpen } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, ExternalLink, RefreshCw, AlertTriangle, PackageOpen, Copy } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
 import { PageHeader } from '../../components/common/PageHeader';
 import { DataTable } from '../../components/common/DataTable';
@@ -237,6 +237,13 @@ export const AdminProducts = () => {
           >
             <ExternalLink className="w-3.5 h-3.5" />
           </Link>
+          <button
+            onClick={() => navigate('/admin/products/new', { state: { duplicateFrom: row } })}
+            className="p-1.5 text-stone-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+            title="Duplicate / Clone Product (Create New Color Variant)"
+          >
+            <Copy className="w-3.5 h-3.5 text-emerald-600" />
+          </button>
           <button
             onClick={() => navigate(`/admin/products/${row.id}`)}
             className="p-1.5 text-stone-400 hover:text-[#0A261C] hover:bg-stone-100 rounded-lg transition-colors"
