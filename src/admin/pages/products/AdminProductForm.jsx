@@ -443,6 +443,11 @@ export const AdminProductForm = () => {
     if (isEditing) {
       updateProduct(id, payload);
     } else {
+      // Ensure no inherited identifier causes an overwrite of the original product
+      delete payload.id;
+      delete payload._id;
+      delete payload.customId;
+      delete payload.slug;
       addProduct(payload);
     }
 

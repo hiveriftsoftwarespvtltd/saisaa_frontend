@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, Navigate, useParams, useLocation } from 'react-router-dom';
 import { ToastProvider } from './context/ToastContext';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
@@ -55,6 +55,13 @@ import { AdminReturns } from './admin/pages/returns/AdminReturns';
 import { AdminPayments } from './admin/pages/payments/AdminPayments';
 import { AdminAnalytics } from './admin/pages/analytics/AdminAnalytics';
 import { AdminSettings } from './admin/pages/settings/AdminSettings';
+
+// Product Form Wrapper ensuring clean remount between New, Edit, and Duplicate modes
+const AdminProductFormWrapper = () => {
+  const { id } = useParams();
+  const location = useLocation();
+  return <AdminProductForm key={id ? `edit-${id}` : `new-${location.key || 'default'}`} />;
+};
 
 // Customer Storefront Layout Wrapper (Preserves customer Navbar & Footer)
 const CustomerLayout = () => {
@@ -136,8 +143,8 @@ export default function App() {
                 <Route path="hero-banners" element={<AdminHeroBanners />} />
                 <Route path="content" element={<AdminContent />} />
                 <Route path="products" element={<AdminProducts />} />
-                <Route path="products/new" element={<AdminProductForm />} />
-                <Route path="products/:id" element={<AdminProductForm />} />
+                <Route path="products/new" element={<AdminProductFormWrapper />} />
+                <Route path="products/:id" element={<AdminProductFormWrapper />} />
                 <Route path="categories" element={<AdminCategories />} />
                 <Route path="subcategories" element={<AdminSubCategories />} />
                 <Route path="orders" element={<AdminOrders />} />
