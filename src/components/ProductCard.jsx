@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Heart, ShoppingBag, Eye, Star, Crown, Minus, Plus, Zap } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
+import { resolveProductImageUrl } from '../config';
 
 const CardActionButtons = ({
   product,
@@ -250,13 +251,15 @@ export const ProductCard = ({
         <div className="lg:col-span-5 relative h-[320px] sm:h-[360px] lg:h-[390px] overflow-hidden bg-[#F7F3EB]">
           <Link to={`/product/${product.id}`} state={{ product }} className="block w-full h-full">
             <img
-              src={product.homeImage || product.cardImage || product.images?.[0] || '/images/05_shop_product_card_1.jpg'}
+              src={resolveProductImageUrl(product.homeImage || product.cardImage || product.images?.[0])}
               alt={product.name}
               className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
               loading="lazy"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = '/images/05_shop_product_card_1.jpg';
+                if (!e.target.src.includes('05_shop_product_card_1')) {
+                  e.target.src = '/images/05_shop_product_card_1.jpg';
+                }
               }}
             />
           </Link>
@@ -555,13 +558,15 @@ export const ProductCard = ({
         <div className="lg:col-span-5 relative h-[320px] sm:h-[360px] lg:h-[390px] overflow-hidden bg-[#071F17] order-1 lg:order-2 border-b lg:border-b-0 lg:border-l border-[#D4AF37]/25">
           <Link to={`/product/${product.id}`} state={{ product }} className="block w-full h-full">
             <img
-              src={product.homeImage || product.cardImage || product.images?.[0] || '/images/05_shop_product_card_1.jpg'}
+              src={resolveProductImageUrl(product.homeImage || product.cardImage || product.images?.[0])}
               alt={product.name}
               className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
               loading="lazy"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = '/images/05_shop_product_card_1.jpg';
+                if (!e.target.src.includes('05_shop_product_card_1')) {
+                  e.target.src = '/images/05_shop_product_card_1.jpg';
+                }
               }}
             />
           </Link>
@@ -605,13 +610,15 @@ export const ProductCard = ({
         <div className="relative aspect-[4/4.6] overflow-hidden bg-[#F7F3EB]">
           <Link to={`/product/${product.id}`} state={{ product }} className="block w-full h-full">
             <img
-              src={product.cardImage || product.images?.[0] || '/images/05_shop_product_card_1.jpg'}
+              src={resolveProductImageUrl(product.cardImage || product.images?.[0])}
               alt={product.name}
               className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
               loading="lazy"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = '/images/05_shop_product_card_1.jpg';
+                if (!e.target.src.includes('05_shop_product_card_1')) {
+                  e.target.src = '/images/05_shop_product_card_1.jpg';
+                }
               }}
             />
           </Link>
@@ -744,13 +751,15 @@ export const ProductCard = ({
         <div className="relative aspect-[4/4.6] overflow-hidden bg-[#071F17] border-b border-[#D4AF37]/20">
           <Link to={`/product/${product.id}`} state={{ product }} className="block w-full h-full">
             <img
-              src={product.cardImage || product.images?.[0] || '/images/05_shop_product_card_1.jpg'}
+              src={resolveProductImageUrl(product.cardImage || product.images?.[0])}
               alt={product.name}
               className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
               loading="lazy"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = '/images/05_shop_product_card_1.jpg';
+                if (!e.target.src.includes('05_shop_product_card_1')) {
+                  e.target.src = '/images/05_shop_product_card_1.jpg';
+                }
               }}
             />
           </Link>
@@ -888,13 +897,15 @@ export const ProductCard = ({
       <div className="relative aspect-[4/5] overflow-hidden bg-[#FAF7F2]">
         <Link to={`/product/${product.id}`} state={{ product }} className="block w-full h-full">
           <img
-            src={product.cardImage || product.images?.[0] || '/images/05_shop_product_card_1.jpg'}
+            src={resolveProductImageUrl(product.cardImage || product.images?.[0])}
             alt={product.name}
             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
             loading="lazy"
             onError={(e) => {
               e.target.onerror = null;
-              e.target.src = '/images/05_shop_product_card_1.jpg';
+              if (!e.target.src.includes('05_shop_product_card_1')) {
+                e.target.src = '/images/05_shop_product_card_1.jpg';
+              }
             }}
           />
         </Link>

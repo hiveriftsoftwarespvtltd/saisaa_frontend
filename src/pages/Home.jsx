@@ -10,7 +10,7 @@ import { ProductCard } from '../components/ProductCard';
 import { HeroSlideshow } from '../components/HeroSlideshow';
 import { QuickViewModal } from '../components/QuickViewModal';
 import { useToast } from '../context/ToastContext';
-import { apiClient, API_ENDPOINTS, API_BASE_URL } from '../config';
+import { apiClient, API_ENDPOINTS, API_BASE_URL, resolveProductImageUrl } from '../config';
 
 const DEFAULT_EDITORIAL_BANNERS = [
   {
@@ -121,11 +121,12 @@ export const Home = () => {
         const serverItems = res?.data?.items || res?.data;
         if (Array.isArray(serverItems) && serverItems.length > 0 && isMounted) {
           const normalized = serverItems.map((p) => {
-            const cover =
+            const rawCover =
               p.cardImage ||
               p.coverImage ||
               (Array.isArray(p.images) && p.images[0]) ||
               '/images/05_shop_product_card_1.jpg';
+            const cover = resolveProductImageUrl(rawCover);
             return {
               ...p,
               id: p.customId || p.id || p._id?.toString(),
@@ -139,8 +140,8 @@ export const Home = () => {
                   : p.subCategory || 'Artisanal Collection',
               cardImage: cover,
               coverImage: cover,
-              homeImage: p.homeImage || cover,
-              images: Array.isArray(p.images) && p.images.length > 0 ? p.images : [cover],
+              homeImage: p.homeImage ? resolveProductImageUrl(p.homeImage) : cover,
+              images: Array.isArray(p.images) && p.images.length > 0 ? p.images.map((im) => resolveProductImageUrl(im)) : [cover],
               isFeatured: Boolean(p.isFeatured),
               isBestSeller: Boolean(p.isBestSeller),
               isNewArrival: Boolean(p.isNewArrival),
