@@ -208,30 +208,93 @@ export const Home = () => {
     }
   };
 
-  // 1. Featured Collection products (Driven by isFeatured checkbox in Admin)
-  const featuredProducts = useMemo(() => {
-    const explicitlyFeatured = productsList.filter(
-      (p) => Boolean(p.isFeatured) && p.status !== 'Draft'
-    );
-    if (explicitlyFeatured.length > 0) {
-      return explicitlyFeatured.slice(0, 8);
+  /**
+   * Shuffles and diversifies product selection so identical product styles
+   * (e.g. multiple color variants of the same design) are not repeated
+   * side-by-side in storefront showcases.
+   */
+  const getDiversifiedShowcaseProducts = (products, filterFn = null, maxCount = 8) => {
+    if (!Array.isArray(products) || products.length === 0) return [];
+    const pool = products.filter((p) => p && p.status !== 'Draft');
+    if (pool.length === 0) return [];
+
+    const explicitMatches = filterFn ? pool.filter(filterFn) : [];
+
+    const groupAndPickDistinct = (items) => {
+      const grouped = new Map();
+      for (const p of items) {
+        const normName = (p.name || '').trim().toLowerCase();
+        if (!grouped.has(normName)) grouped.set(normName, []);
+        grouped.get(normName).push(p);
+      }
+      const picks = [];
+      for (const [, variants] of grouped.entries()) {
+        picks.push(variants[Math.floor(Math.random() * variants.length)]);
+      }
+      // Fisher-Yates shuffle
+      for (let i = picks.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [picks[i], picks[j]] = [picks[j], picks[i]];
+      }
+      return picks;
+    };
+
+    let selected = [];
+    if (explicitMatches.length > 0) {
+      selected = groupAndPickDistinct(explicitMatches);
     }
-    // Graceful fallback to initial items if none marked yet
-    return productsList.slice(0, 8);
+
+    // If explicit items are fewer than maxCount, backfill with distinct items from remaining catalog
+    if (selected.length < maxCount) {
+      const selectedIds = new Set(selected.map((p) => p.id || p._id));
+      const selectedNames = new Set(selected.map((p) => (p.name || '').trim().toLowerCase()));
+
+      const restPool = pool.filter(
+        (p) =>
+          !selectedIds.has(p.id || p._id) &&
+          !selectedNames.has((p.name || '').trim().toLowerCase())
+      );
+
+      const backfill = groupAndPickDistinct(restPool);
+      selected = [...selected, ...backfill];
+    }
+
+    // If still fewer than maxCount (e.g. total distinct names < maxCount), backfill any remaining variants
+    if (selected.length < maxCount) {
+      const selectedIds = new Set(selected.map((p) => p.id || p._id));
+      const remainingVariants = pool.filter((p) => !selectedIds.has(p.id || p._id));
+      for (let i = remainingVariants.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [remainingVariants[i], remainingVariants[j]] = [remainingVariants[j], remainingVariants[i]];
+      }
+      selected = [...selected, ...remainingVariants];
+    }
+
+    // Final shuffle so the showcase has an organic, balanced editorial order
+    for (let i = selected.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [selected[i], selected[j]] = [selected[j], selected[i]];
+    }
+
+    return selected.slice(0, maxCount);
+  };
+
+  // 1. Featured Collection products (Deduplicated, shuffled & diversified across catalog)
+  const featuredProducts = useMemo(() => {
+    return getDiversifiedShowcaseProducts(
+      productsList,
+      (p) => Boolean(p.isFeatured),
+      8
+    );
   }, [productsList]);
 
-  // 2. Best Seller products (Driven by isBestSeller checkbox in Admin)
+  // 2. Best Seller products (Deduplicated, shuffled & diversified across catalog)
   const bestSellerProducts = useMemo(() => {
-    const explicitlyBestSellers = productsList.filter(
-      (p) => Boolean(p.isBestSeller) && p.status !== 'Draft'
+    return getDiversifiedShowcaseProducts(
+      productsList,
+      (p) => Boolean(p.isBestSeller),
+      8
     );
-    if (explicitlyBestSellers.length > 0) {
-      return explicitlyBestSellers.slice(0, 8);
-    }
-    // Graceful fallback to top-rated items
-    return [...productsList]
-      .sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0))
-      .slice(0, 8);
   }, [productsList]);
 
   return (
